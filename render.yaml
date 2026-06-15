@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: bytechat
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --worker-class gthread --workers 1 --threads 100 --bind 0.0.0.0:$PORT ByteChat:app
+    healthCheckPath: /
+    envVars:
+      - key: TOKEN_TELEGRAM
+        sync: false
+      - key: CHAT_ID
+        sync: false

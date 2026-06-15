@@ -1,0 +1,18 @@
+Information
+********************************************************
+link: t.me/CanYOUsee69bot
+TOKEN_TELEGRAM: configurar como variable de entorno
+CHAT_ID: configurar como variable de entorno
+*********************************************************
+Correr en pc (modo local):
+1) Arrancar el servidor en visual
+python ByteChat.py
+2) En el navegador:
+http://localhost:5000
+
+En celular:
+3) Si o si paso 1 y luego:
+ipconfig → en cmd sacar
+Dirección IPv4. . . . . . . . . . . . . . : 10.63.245.166
+En el navegador del celular
+http://10.63.245.166:5000
