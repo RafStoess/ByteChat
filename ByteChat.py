@@ -1023,23 +1023,108 @@ body{
 
 @media(max-width:768px){
 
+    body{
+        height:100dvh;
+        height:var(--app-height, 100dvh);
+        overflow:hidden;
+    }
+
     .chat-container{
         flex-direction:column;
+        height:100dvh;
+        height:var(--app-height, 100dvh);
+        overflow:hidden;
     }
 
     .sidebar{
 
         width:100%;
         height:auto;
+        max-height:38dvh;
+        flex-shrink:0;
+        overflow:hidden;
+    }
+
+    .brand{
+        padding:14px;
+    }
+
+    .login-box{
+        padding:12px;
+        gap:8px;
+    }
+
+    .login-box input{
+        padding:11px 12px;
+        font-size:14px;
+    }
+
+    .btn-primary{
+        padding:11px;
     }
 
     .users-list{
 
-        max-height:180px;
+        max-height:110px;
+        padding:10px 12px;
+        overflow-y:auto;
+    }
+
+    .users-list h3{
+        font-size:12px;
+        margin-bottom:8px;
+    }
+
+    .user-item{
+        padding:8px;
+        margin-bottom:5px;
+    }
+
+    .avatar{
+        width:34px;
+        height:34px;
     }
 
     .chat-main{
-        height:100%;
+        flex:1;
+        min-height:0;
+        height:auto;
+        display:flex;
+        flex-direction:column;
+    }
+
+    .chat-header{
+        padding:12px;
+        flex-shrink:0;
+    }
+
+    .chat-messages{
+        flex:1;
+        min-height:0;
+        overflow-y:auto;
+        padding:12px;
+        gap:10px;
+    }
+
+    .chat-footer{
+        flex-shrink:0;
+        padding:10px 12px;
+        padding-bottom:calc(12px + env(safe-area-inset-bottom));
+    }
+
+    .message-form{
+        gap:8px;
+    }
+
+    .message-form input{
+        min-width:0;
+        padding:12px;
+    }
+
+    .btn-send{
+        width:46px;
+        height:46px;
+        flex-shrink:0;
     }
 
     .message{
@@ -1157,6 +1242,38 @@ body{
 var socket = io();
 
 var nombre = "";
+
+// =========================================
+// ALTURA MOVIL SEGURA
+// =========================================
+
+function setAppHeight(){
+
+    const height =
+        window.visualViewport
+        ? window.visualViewport.height
+        : window.innerHeight;
+
+    document.documentElement.style.setProperty(
+        "--app-height",
+        height + "px"
+    );
+}
+
+window.addEventListener(
+    "resize",
+    setAppHeight
+);
+
+if(window.visualViewport){
+
+    window.visualViewport.addEventListener(
+        "resize",
+        setAppHeight
+    );
+}
+
+setAppHeight();
 
 // =========================================
 // GUARDAR NOMBRE
