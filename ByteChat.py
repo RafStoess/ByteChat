@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, redirect, session, url_for
 from flask_socketio import SocketIO, send, join_room, leave_room
 from telegram import Update
 from telegram.ext import (
@@ -9,6 +9,7 @@ from telegram.ext import (
 )
 
 import asyncio
+import html
 import os
 import threading
 import requests
@@ -64,12 +65,31 @@ chatID = os.environ.get(
     ""
 )
 
+adminUser = os.environ.get(
+    "ADMIN_USER",
+    ""
+)
+
+adminPassword = os.environ.get(
+    "ADMIN_PASSWORD",
+    ""
+)
+
+secretKey = os.environ.get(
+    "SECRET_KEY",
+    "bytechat-dev-secret-key"
+)
+
 
 # =========================================
 # APP
 # =========================================
 
 app = Flask(__name__)
+
+# En produccion configure SECRET_KEY como variable de entorno.
+# El fallback existe solo para pruebas locales.
+app.secret_key = secretKey
 
 socket = SocketIO(
     app,
@@ -101,6 +121,15 @@ salasBase = [
 ]
 salasDinamicas = []
 salasUsuario = {}
+mensajesFijados = {
+    "general": "",
+    "anuncios": ""
+}
+historialSalas = {
+    "general": [],
+    "anuncios": [],
+    "soporte": []
+}
 
 
 def obtenerSalas():
@@ -172,6 +201,104 @@ def emitirSalas(destino=None):
     socket.emit(
         "salas",
         obtenerSalas()
+    )
+
+
+def guardarHistorialSala(sala, mensaje):
+
+    if sala not in historialSalas:
+
+        historialSalas[sala] = []
+
+    historialSalas[sala].append(mensaje)
+    historialSalas[sala] = historialSalas[sala][-50:]
+
+
+def obtenerHistorialSala(sala):
+
+    return historialSalas.get(
+        sala,
+        []
+    )
+
+
+def emitirEstadoSala(sala, destino):
+
+    socket.emit(
+        "mensaje_fijado",
+        {
+            "sala": sala,
+            "texto": mensajesFijados.get(
+                sala,
+                ""
+            )
+        },
+        to=destino
+    )
+
+    socket.emit(
+        "historial_sala",
+        {
+            "sala": sala,
+            "mensajes": obtenerHistorialSala(sala)
+        },
+        to=destino
+    )
+
+
+def reiniciarChatEvento():
+
+    salasDinamicas.clear()
+
+    historialSalas.clear()
+
+    for sala in salasBase:
+
+        historialSalas[sala] = []
+
+    mensajesFijados.clear()
+
+    for sala in salasBase:
+
+        mensajesFijados[sala] = ""
+
+    for sid, sala in list(salasUsuario.items()):
+
+        if sala not in salasBase:
+
+            leave_room(
+                sala,
+                sid=sid,
+                namespace="/"
+            )
+
+            join_room(
+                "general",
+                sid=sid,
+                namespace="/"
+            )
+
+            salasUsuario[sid] = "general"
+
+            socket.emit(
+                "sala_actual",
+                "general",
+                to=sid
+            )
+
+            emitirEstadoSala(
+                "general",
+                sid
+            )
+
+    emitirSalas()
+
+    socket.emit(
+        "chat_reiniciado",
+        {
+            "mensaje": "El chat fue reiniciado por el administrador.",
+            "salas": obtenerSalas()
+        }
     )
 
 
@@ -557,6 +684,422 @@ def get_command_response(message):
 # =========================================
 # HTML
 # =========================================
+
+def renderAdminLogin(error=""):
+
+    error_html = ""
+
+    if error:
+
+        error_html = f"<p class='error'>{html.escape(error)}</p>"
+
+    return f"""
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ByteChat Admin</title>
+<style>
+body{{
+    margin:0;
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    background:#0f172a;
+    color:#f8fafc;
+    font-family:Segoe UI, sans-serif;
+}}
+.admin-card{{
+    width:min(92vw, 380px);
+    padding:24px;
+    border:1px solid #243041;
+    border-radius:12px;
+    background:#111827;
+}}
+h1{{margin-bottom:18px;}}
+label{{display:block;margin:12px 0 6px;color:#cbd5e1;}}
+input{{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#1e293b;
+    color:white;
+    box-sizing:border-box;
+}}
+button{{
+    width:100%;
+    margin-top:18px;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#06b6d4;
+    color:white;
+    font-weight:700;
+    cursor:pointer;
+}}
+.error{{color:#fca5a5;margin-bottom:12px;}}
+</style>
+</head>
+<body>
+<form class="admin-card" method="post" action="/admin">
+    <h1>ByteChat Admin</h1>
+    {error_html}
+    <label for="usuario">Usuario</label>
+    <input id="usuario" name="usuario" autocomplete="username" required>
+    <label for="password">Contraseña</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button type="submit">Ingresar</button>
+</form>
+</body>
+</html>
+"""
+
+
+def renderAdminDashboard(
+    mensaje="",
+    sala_seleccionada="anuncios"
+):
+
+    mensaje_html = ""
+
+    if mensaje:
+
+        mensaje_html = f"<p class='notice'>{html.escape(mensaje)}</p>"
+
+    fijado = html.escape(
+        mensajesFijados.get(
+            sala_seleccionada,
+            ""
+        )
+    )
+
+    general_selected = (
+        "selected"
+        if sala_seleccionada == "general"
+        else ""
+    )
+
+    anuncios_selected = (
+        "selected"
+        if sala_seleccionada == "anuncios"
+        else ""
+    )
+
+    return f"""
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin - ByteChat</title>
+<style>
+body{{
+    margin:0;
+    min-height:100vh;
+    background:#0f172a;
+    color:#f8fafc;
+    font-family:Segoe UI, sans-serif;
+}}
+.admin-shell{{
+    max-width:900px;
+    margin:0 auto;
+    padding:24px;
+}}
+.topbar{{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:20px;
+}}
+a{{color:#67e8f9;}}
+.panel{{
+    border:1px solid #243041;
+    border-radius:12px;
+    background:#111827;
+    padding:18px;
+    margin-bottom:16px;
+}}
+textarea{{
+    width:100%;
+    min-height:110px;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#1e293b;
+    color:white;
+    box-sizing:border-box;
+    resize:vertical;
+}}
+select{{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#1e293b;
+    color:white;
+    box-sizing:border-box;
+    margin-bottom:12px;
+}}
+button{{
+    margin-top:12px;
+    padding:11px 14px;
+    border:none;
+    border-radius:8px;
+    background:#06b6d4;
+    color:white;
+    font-weight:700;
+    cursor:pointer;
+}}
+.danger{{background:#ef4444;}}
+.notice{{
+    color:#86efac;
+    margin-bottom:14px;
+}}
+.current{{
+    white-space:pre-wrap;
+    color:#cbd5e1;
+    background:#1e293b;
+    padding:12px;
+    border-radius:8px;
+}}
+</style>
+</head>
+<body>
+<main class="admin-shell">
+    <div class="topbar">
+        <div>
+            <h1>Panel Admin</h1>
+            <p>Sala administrada: anuncios</p>
+        </div>
+        <a href="/admin/logout">Cerrar sesión</a>
+    </div>
+    {mensaje_html}
+    <section class="panel">
+        <h2>Publicar anuncio en sala Anuncios</h2>
+        <form method="post" action="/admin/dashboard">
+            <textarea name="anuncio" placeholder="Este mensaje se publicara solo en la sala Anuncios..."></textarea>
+            <button name="accion" value="publicar" type="submit">Publicar en Anuncios</button>
+            <button class="danger" name="accion" value="limpiar_historial_anuncios" type="submit">
+                Limpiar historial de anuncios
+            </button>
+        </form>
+    </section>
+    <section class="panel">
+        <h2>Fijar mensaje por sala</h2>
+        <p class="current">{fijado or "No hay mensaje fijado."}</p>
+        <form method="post" action="/admin/dashboard">
+            <select name="sala_fijado">
+                <option value="general" {general_selected}>General</option>
+                <option value="anuncios" {anuncios_selected}>Anuncios</option>
+            </select>
+            <textarea name="fijado" placeholder="Mensaje fijado visible solo en la sala seleccionada...">{fijado}</textarea>
+            <button name="accion" value="fijar" type="submit">Fijar mensaje</button>
+            <button class="danger" name="accion" value="limpiar" type="submit">Limpiar fijado</button>
+        </form>
+    </section>
+    <section class="panel">
+        <h2>Reiniciar chat del evento</h2>
+        <p class="current">
+            Borra historiales, salas de equipo y mensajes fijados.
+            Conserva general, anuncios y soporte.
+        </p>
+        <form method="post" action="/admin/dashboard">
+            <button class="danger" name="accion" value="reiniciar_chat" type="submit">
+                Reiniciar mensajes y salas
+            </button>
+        </form>
+    </section>
+</main>
+</body>
+</html>
+"""
+
+
+def adminAutenticado():
+
+    return session.get("admin_autenticado") is True
+
+
+@app.route("/admin", methods=["GET", "POST"])
+def adminLogin():
+
+    if request.method == "POST":
+
+        usuario = request.form.get(
+            "usuario",
+            ""
+        )
+
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+        if (
+            adminUser
+            and adminPassword
+            and usuario == adminUser
+            and password == adminPassword
+        ):
+
+            session["admin_autenticado"] = True
+
+            return redirect(
+                url_for("adminDashboard")
+            )
+
+        return renderAdminLogin(
+            "Credenciales invalidas."
+        )
+
+    if adminAutenticado():
+
+        return redirect(
+            url_for("adminDashboard")
+        )
+
+    return renderAdminLogin()
+
+
+@app.route("/admin/dashboard", methods=["GET", "POST"])
+def adminDashboard():
+
+    if not adminAutenticado():
+
+        return redirect(
+            url_for("adminLogin")
+        )
+
+    mensaje_estado = ""
+    sala_seleccionada = request.form.get(
+        "sala_fijado",
+        "anuncios"
+    )
+
+    if sala_seleccionada not in ("general", "anuncios"):
+
+        sala_seleccionada = "anuncios"
+
+    if request.method == "POST":
+
+        accion = request.form.get(
+            "accion",
+            ""
+        )
+
+        if accion == "publicar":
+
+            anuncio = request.form.get(
+                "anuncio",
+                ""
+            ).strip()
+
+            if anuncio:
+
+                mensaje_anuncio = f"Admin: {anuncio}"
+
+                guardarHistorialSala(
+                    "anuncios",
+                    mensaje_anuncio
+                )
+
+                socket.emit(
+                    "message",
+                    mensaje_anuncio,
+                    to="anuncios"
+                )
+
+                mensaje_estado = "Anuncio publicado solo en la sala Anuncios."
+
+        elif accion == "limpiar_historial_anuncios":
+
+            historialSalas["anuncios"] = []
+
+            socket.emit(
+                "limpiar_historial_sala",
+                "anuncios",
+                to="anuncios"
+            )
+
+            mensaje_sistema = (
+                "Sistema: El historial de anuncios fue limpiado por el administrador."
+            )
+
+            guardarHistorialSala(
+                "anuncios",
+                mensaje_sistema
+            )
+
+            socket.emit(
+                "message",
+                mensaje_sistema,
+                to="anuncios"
+            )
+
+            mensaje_estado = "Historial de anuncios limpiado."
+
+        elif accion == "fijar":
+
+            fijado = request.form.get(
+                "fijado",
+                ""
+            ).strip()
+
+            mensajesFijados[sala_seleccionada] = fijado
+
+            socket.emit(
+                "mensaje_fijado",
+                {
+                    "sala": sala_seleccionada,
+                    "texto": fijado
+                },
+                to=sala_seleccionada
+            )
+
+            mensaje_estado = "Mensaje fijado actualizado."
+
+        elif accion == "limpiar":
+
+            mensajesFijados[sala_seleccionada] = ""
+
+            socket.emit(
+                "mensaje_fijado",
+                {
+                    "sala": sala_seleccionada,
+                    "texto": ""
+                },
+                to=sala_seleccionada
+            )
+
+            mensaje_estado = "Mensaje fijado limpiado."
+
+        elif accion == "reiniciar_chat":
+
+            reiniciarChatEvento()
+
+            mensaje_estado = "Chat reiniciado para un nuevo evento."
+
+    return renderAdminDashboard(
+        mensaje_estado,
+        sala_seleccionada
+    )
+
+
+@app.route("/admin/logout")
+def adminLogout():
+
+    session.pop(
+        "admin_autenticado",
+        None
+    )
+
+    return redirect(
+        url_for("adminLogin")
+    )
+
 
 @app.route("/")
 def index():
@@ -971,6 +1514,21 @@ body{
     flex-direction:column;
 
     gap:16px;
+}
+
+.pinned-message{
+    display:none;
+    margin:14px 20px 0;
+    padding:12px 14px;
+    border:1px solid #facc15;
+    border-radius:10px;
+    background:rgba(250,204,21,.12);
+    color:#fef3c7;
+    white-space:pre-wrap;
+}
+
+.pinned-message.show{
+    display:block;
 }
 
 /* =========================================
@@ -1419,6 +1977,12 @@ body{
         gap:10px;
     }
 
+    .pinned-message{
+        margin:10px 12px 0;
+        padding:10px 12px;
+        font-size:14px;
+    }
+
     .chat-footer{
         flex-shrink:0;
         padding:10px 12px;
@@ -1602,6 +2166,11 @@ body{
         <!-- MENSAJES -->
 
         <div
+            class="pinned-message"
+            id="mensajeFijado"
+        ></div>
+
+        <div
             class="chat-messages"
             id="chat"
         ></div>
@@ -1651,6 +2220,11 @@ var salasDisponibles = [
     "anuncios",
     "soporte"
 ];
+var mensajesFijados = {
+    general:"",
+    anuncios:"",
+    soporte:""
+};
 
 // =========================================
 // ALTURA MOVIL SEGURA
@@ -1753,6 +2327,30 @@ function actualizarSalaActual(){
 
     document.getElementById("salaMovil").textContent =
         "Sala " + etiqueta;
+
+    actualizarMensajeFijado();
+}
+
+function actualizarMensajeFijado(){
+
+    let caja =
+        document.getElementById("mensajeFijado");
+
+    let texto =
+        mensajesFijados[salaActual] || "";
+
+    if(texto){
+
+        caja.textContent =
+            texto;
+
+        caja.classList.add("show");
+
+    }else{
+
+        caja.textContent = "";
+        caja.classList.remove("show");
+    }
 }
 
 function actualizarSalas(salas){
@@ -2021,13 +2619,102 @@ socket.on("sala_actual", function(sala){
     actualizarSalaActual();
     actualizarSalas(salasDisponibles);
 
+    cerrarMenuMovil();
+});
+
+socket.on("mensaje_fijado", function(data){
+
+    let sala =
+        "anuncios";
+
+    let texto =
+        "";
+
+    if(typeof data == "string"){
+
+        texto = data;
+
+    }else if(data){
+
+        sala = data.sala || "anuncios";
+        texto = data.texto || "";
+    }
+
+    mensajesFijados[sala] =
+        texto;
+
+    actualizarMensajeFijado();
+});
+
+socket.on("historial_sala", function(data){
+
+    let mensajes =
+        data;
+
+    if(data && !Array.isArray(data)){
+
+        mensajes = data.mensajes || [];
+    }
+
+    if(!Array.isArray(mensajes)){
+        return;
+    }
+
+    document.getElementById("chat").innerHTML = "";
+
+    mensajes.forEach(function(msg){
+
+        agregarMensaje(
+            msg,
+            false
+        );
+    });
+});
+
+socket.on("chat_reiniciado", function(data){
+
+    let salas =
+        data && data.salas
+        ? data.salas
+        : [
+            "general",
+            "anuncios",
+            "soporte"
+        ];
+
+    salasDisponibles =
+        salas;
+
+    if(!salas.includes(salaActual)){
+
+        salaActual =
+            "general";
+    }
+
+    mensajesFijados = {
+        general:"",
+        anuncios:"",
+        soporte:""
+    };
+
+    actualizarSalaActual();
+    actualizarSalas(salasDisponibles);
+
     document.getElementById("chat").innerHTML = "";
 
     agregarSistema(
-        "Entraste a la sala " + nombreSalaLegible(sala)
+        data && data.mensaje
+        ? data.mensaje
+        : "El chat fue reiniciado por el administrador."
     );
+});
 
-    cerrarMenuMovil();
+socket.on("limpiar_historial_sala", function(sala){
+
+    if(sala == salaActual){
+
+        document.getElementById("chat").innerHTML = "";
+    }
 });
 
 socket.on("system_message", function(msg){
@@ -2220,6 +2907,10 @@ def conectarUsuario():
         "general",
         to=request.sid
     )
+    emitirEstadoSala(
+        "general",
+        request.sid
+    )
     emitirUsuarios()
 
 
@@ -2238,6 +2929,14 @@ def registrarUsuario(nombre):
         "system_message",
         f"{nombre} se unio al chat",
         skip_sid=request.sid
+    )
+
+    emitirEstadoSala(
+        salasUsuario.get(
+            request.sid,
+            "general"
+        ),
+        request.sid
     )
 
     emitirUsuarios()
@@ -2300,6 +2999,11 @@ def cambiarSala(sala):
         to=request.sid
     )
 
+    emitirEstadoSala(
+        sala,
+        request.sid
+    )
+
 
 @socket.on("crear_sala")
 def crearSala(nombre):
@@ -2313,6 +3017,8 @@ def crearSala(nombre):
     if sala not in salasBase and sala not in salasDinamicas:
 
         salasDinamicas.append(sala)
+        historialSalas[sala] = []
+        mensajesFijados[sala] = ""
         emitirSalas()
 
     cambiarSala(sala)
@@ -2348,9 +3054,24 @@ def recibirMensajeSala(data):
 
         cambiarSala(sala)
 
+    if sala == "anuncios":
+
+        socket.emit(
+            "message",
+            "ByteBot: Solo el administrador puede publicar en la sala de anuncios.",
+            to=request.sid
+        )
+
+        return
+
     mensaje = f"{usuario}: {texto_usuario}"
 
     print("Mensaje WEB:", mensaje, "Sala:", sala)
+
+    guardarHistorialSala(
+        sala,
+        mensaje
+    )
 
     socket.emit(
         "message",
@@ -2364,9 +3085,16 @@ def recibirMensajeSala(data):
 
     if respuesta:
 
+        mensaje_bot = f"ByteBot: {respuesta['text']}"
+
+        guardarHistorialSala(
+            sala,
+            mensaje_bot
+        )
+
         socket.emit(
             "message",
-            f"ByteBot: {respuesta['text']}",
+            mensaje_bot,
             to=sala
         )
 
@@ -2385,6 +3113,11 @@ def recibirMensaje(mensaje):
     print("Mensaje WEB:", mensaje)
 
     # Compatibilidad con clientes antiguos: el canal historico publica en general.
+    guardarHistorialSala(
+        "general",
+        mensaje
+    )
+
     send(
         mensaje,
         to="general"
@@ -2401,10 +3134,17 @@ def recibirMensaje(mensaje):
 
         if respuesta:
 
+            mensaje_bot = f"ByteBot: {respuesta['text']}"
+
+            guardarHistorialSala(
+                "general",
+                mensaje_bot
+            )
+
             # ByteBot responde directamente en el chat web mediante SocketIO.
             # Esta respuesta no pasa por Telegram.
             send(
-                f"ByteBot: {respuesta['text']}",
+                mensaje_bot,
                 to="general"
             )
 
@@ -2497,6 +3237,11 @@ async def recibirTelegram(
 
     print("Telegram:", texto)
 
+    guardarHistorialSala(
+        "general",
+        texto
+    )
+
     socket.emit(
         "telegram_message",
         texto,
@@ -2509,9 +3254,16 @@ async def recibirTelegram(
 
         return
 
+    mensaje_bot = f"ByteBot: {respuesta['text']}"
+
+    guardarHistorialSala(
+        "general",
+        mensaje_bot
+    )
+
     socket.emit(
         "telegram_message",
-        f"ByteBot: {respuesta['text']}",
+        mensaje_bot,
         to="general"
     )
 
