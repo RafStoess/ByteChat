@@ -1,5 +1,5 @@
 from flask import Flask, request
-from flask_socketio import SocketIO, send
+from flask_socketio import SocketIO, send, join_room, leave_room
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -94,6 +94,85 @@ botTelegram = None
 usuarios = []
 usuariosWeb = {}
 usuariosTelegram = set()
+salasBase = [
+    "general",
+    "anuncios",
+    "soporte"
+]
+salasDinamicas = []
+salasUsuario = {}
+
+
+def obtenerSalas():
+
+    return salasBase + [
+        sala
+        for sala in salasDinamicas
+        if sala not in salasBase
+    ]
+
+
+def normalizarSala(nombre):
+
+    sala = str(nombre).strip().lower()
+
+    reemplazos = {
+        "á": "a",
+        "é": "e",
+        "í": "i",
+        "ó": "o",
+        "ú": "u",
+        "ñ": "n"
+    }
+
+    for origen, destino in reemplazos.items():
+
+        sala = sala.replace(origen, destino)
+
+    limpia = []
+    ultimo_guion = False
+
+    for caracter in sala:
+
+        if caracter.isalnum():
+
+            limpia.append(caracter)
+            ultimo_guion = False
+
+        elif not ultimo_guion:
+
+            limpia.append("-")
+            ultimo_guion = True
+
+    sala = "".join(limpia).strip("-")
+
+    if not sala:
+
+        return ""
+
+    if not sala.startswith("equipo-"):
+
+        sala = f"equipo-{sala}"
+
+    return sala[:40]
+
+
+def emitirSalas(destino=None):
+
+    if destino:
+
+        socket.emit(
+            "salas",
+            obtenerSalas(),
+            to=destino
+        )
+
+        return
+
+    socket.emit(
+        "salas",
+        obtenerSalas()
+    )
 
 
 def emitirUsuarios():
@@ -176,6 +255,7 @@ COMMAND_RESPONSES = {
         "Competencia\n"
         "/reglas\n"
         "/cronograma\n"
+        "/horarios\n"
         "/algoritmos\n\n"
         "Recursos\n"
         "/teambook\n\n"
@@ -256,6 +336,17 @@ COMMAND_RESPONSES = {
         "17:30 - Premiacion\n\n"
         "Los horarios pueden estar sujetos a cambios."
     ),
+    "/horarios": (
+        "\U0001f552 HORARIOS\n\n"
+        "08:30 - Registro de participantes\n"
+        "09:00 - Inauguracion\n"
+        "09:30 - Inicio de la competencia\n"
+        "13:00 - Receso\n"
+        "14:00 - Continuacion\n"
+        "17:00 - Fin de la competencia\n"
+        "17:30 - Premiacion\n\n"
+        "Los horarios pueden estar sujetos a cambios."
+    ),
     "/contacto": (
         "\U0001f4de CONTACTO OFICIAL\n\n"
         "Email:\n"
@@ -274,6 +365,7 @@ COMMAND_RESPONSES = {
         "/dijkstra\n"
         "/dp\n"
         "/greedy\n"
+        "/backtracking\n"
         "/unionfind\n"
         "/segmenttree\n\n"
         "Estos comandos muestran una explicacion resumida de cada tecnica "
@@ -372,6 +464,21 @@ COMMAND_RESPONSES = {
         "1. Construir el arbol.\n"
         "2. Consultar rangos.\n"
         "3. Actualizar valores."
+    ),
+    "/backtracking": (
+        "\U0001f9ed BACKTRACKING\n\n"
+        "Backtracking explora soluciones posibles y retrocede cuando una "
+        "opcion ya no puede llevar a una respuesta valida.\n\n"
+        "Uso comun:\n"
+        "- Permutaciones\n"
+        "- Combinaciones\n"
+        "- Sudoku\n"
+        "- Busqueda exhaustiva con poda\n\n"
+        "Estructura general:\n"
+        "1. Elegir una opcion.\n"
+        "2. Avanzar recursivamente.\n"
+        "3. Deshacer la eleccion.\n"
+        "4. Podar estados invalidos."
     )
 }
 
@@ -529,6 +636,67 @@ body{
 .sidebar-backdrop,
 .quick-commands{
     display:none;
+}
+
+.rooms-panel{
+    padding:16px 18px;
+    border-bottom:1px solid var(--border);
+}
+
+.rooms-panel h3{
+    color:#94a3b8;
+    font-size:13px;
+    margin-bottom:12px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.rooms-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:12px;
+}
+
+.room-item{
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:9px 11px;
+    background:#1e293b;
+    color:white;
+    text-align:left;
+    cursor:pointer;
+}
+
+.room-item.active{
+    border-color:var(--secondary);
+    background:#0f3b57;
+}
+
+.room-create{
+    display:flex;
+    gap:8px;
+}
+
+.room-create input{
+    min-width:0;
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    background:#1e293b;
+    color:white;
+    outline:none;
+}
+
+.room-create button{
+    border:none;
+    border-radius:10px;
+    padding:0 12px;
+    background:var(--secondary);
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
 }
 
 /* =========================================
@@ -1147,6 +1315,24 @@ body{
         padding:11px;
     }
 
+    .rooms-panel{
+        padding:12px;
+    }
+
+    .rooms-panel h3{
+        font-size:12px;
+        margin-bottom:8px;
+    }
+
+    .rooms-list{
+        gap:6px;
+        margin-bottom:10px;
+    }
+
+    .room-item{
+        padding:8px 10px;
+    }
+
     .users-list{
 
         flex:none;
@@ -1267,7 +1453,7 @@ body{
 
         <div class="mobile-title">
             <strong>Byte<span>Chat</span></strong>
-            <span>Sala Global</span>
+            <span id="salaMovil">Sala General</span>
         </div>
 
     </div>
@@ -1306,6 +1492,30 @@ body{
             >
                 Entrar al Chat
             </button>
+
+        </div>
+
+        <div class="rooms-panel">
+
+            <h3>Salas</h3>
+
+            <div
+                id="listaSalas"
+                class="rooms-list"
+            ></div>
+
+            <form
+                class="room-create"
+                onsubmit="event.preventDefault(); crearSalaEquipo();"
+            >
+                <input
+                    type="text"
+                    id="nombreSalaEquipo"
+                    placeholder="Nombre del equipo"
+                >
+
+                <button type="submit">+</button>
+            </form>
 
         </div>
 
@@ -1363,7 +1573,11 @@ body{
             <h2>ByteChat Arena</h2>
 
             <p>
-                Sala Global • Programación Competitiva
+                <span id="salaActualTitulo">General</span>
+                &bull;
+                <span id="salaActualSubtitulo">
+                    Programacion Competitiva
+                </span>
             </p>
 
         </header>
@@ -1414,6 +1628,12 @@ body{
 var socket = io();
 
 var nombre = "";
+var salaActual = "general";
+var salasDisponibles = [
+    "general",
+    "anuncios",
+    "soporte"
+];
 
 // =========================================
 // ALTURA MOVIL SEGURA
@@ -1480,6 +1700,107 @@ function enviarComandoRapido(comando){
 
     cerrarMenuMovil();
     enviar();
+}
+
+// =========================================
+// SALAS
+// =========================================
+
+function nombreSalaLegible(sala){
+
+    if(sala == "general"){
+        return "General";
+    }
+
+    if(sala == "anuncios"){
+        return "Anuncios";
+    }
+
+    if(sala == "soporte"){
+        return "Soporte";
+    }
+
+    return sala.replace(/-/g, " ");
+}
+
+function actualizarSalaActual(){
+
+    let etiqueta =
+        nombreSalaLegible(salaActual);
+
+    document.getElementById("salaActualTitulo").textContent =
+        etiqueta;
+
+    document.getElementById("salaActualSubtitulo").textContent =
+        "Sala " + etiqueta;
+
+    document.getElementById("salaMovil").textContent =
+        "Sala " + etiqueta;
+}
+
+function actualizarSalas(salas){
+
+    salasDisponibles = salas;
+
+    let lista =
+        document.getElementById("listaSalas");
+
+    lista.innerHTML = "";
+
+    salas.forEach(function(sala){
+
+        let boton =
+            document.createElement("button");
+
+        boton.type = "button";
+        boton.className = "room-item";
+
+        if(sala == salaActual){
+            boton.classList.add("active");
+        }
+
+        boton.textContent =
+            nombreSalaLegible(sala);
+
+        boton.onclick = function(){
+            cambiarSala(sala);
+        };
+
+        lista.appendChild(boton);
+    });
+}
+
+function cambiarSala(sala){
+
+    if(sala == salaActual){
+        cerrarMenuMovil();
+        return;
+    }
+
+    socket.emit(
+        "cambiar_sala",
+        sala
+    );
+}
+
+function crearSalaEquipo(){
+
+    let input =
+        document.getElementById("nombreSalaEquipo");
+
+    let equipo =
+        input.value.trim();
+
+    if(equipo == ""){
+        return;
+    }
+
+    socket.emit(
+        "crear_sala",
+        equipo
+    );
+
+    input.value = "";
 }
 
 // =========================================
@@ -1627,8 +1948,13 @@ function enviar(){
         return;
     }
 
-    socket.send(
-        nombre + ": " + mensaje
+    socket.emit(
+        "chat_message",
+        {
+            usuario:nombre,
+            mensaje:mensaje,
+            sala:salaActual
+        }
     );
 
     mensajeInput.value = "";
@@ -1663,6 +1989,28 @@ socket.on("usuarios", function(usuarios){
     actualizarUsuarios(
         usuarios
     );
+});
+
+socket.on("salas", function(salas){
+
+    actualizarSalas(
+        salas
+    );
+});
+
+socket.on("sala_actual", function(sala){
+
+    salaActual = sala;
+    actualizarSalaActual();
+    actualizarSalas(salasDisponibles);
+
+    document.getElementById("chat").innerHTML = "";
+
+    agregarSistema(
+        "Entraste a la sala " + nombreSalaLegible(sala)
+    );
+
+    cerrarMenuMovil();
 });
 
 socket.on("system_message", function(msg){
@@ -1847,6 +2195,14 @@ document
 @socket.on("connect")
 def conectarUsuario():
 
+    salasUsuario[request.sid] = "general"
+    join_room("general")
+    emitirSalas(request.sid)
+    socket.emit(
+        "sala_actual",
+        "general",
+        to=request.sid
+    )
     emitirUsuarios()
 
 
@@ -1873,6 +2229,13 @@ def registrarUsuario(nombre):
 @socket.on("disconnect")
 def desconectarUsuario():
 
+    sala = salasUsuario.pop(
+        request.sid,
+        "general"
+    )
+
+    leave_room(sala)
+
     nombre = usuariosWeb.pop(
         request.sid,
         None
@@ -1891,16 +2254,124 @@ def desconectarUsuario():
 
 
 # =========================================
+# SALAS SOCKET
+# =========================================
+
+@socket.on("cambiar_sala")
+def cambiarSala(sala):
+
+    sala = str(sala).strip()
+
+    if sala not in obtenerSalas():
+
+        return
+
+    sala_anterior = salasUsuario.get(
+        request.sid,
+        "general"
+    )
+
+    if sala_anterior != sala:
+
+        leave_room(sala_anterior)
+        join_room(sala)
+        salasUsuario[request.sid] = sala
+
+    socket.emit(
+        "sala_actual",
+        sala,
+        to=request.sid
+    )
+
+
+@socket.on("crear_sala")
+def crearSala(nombre):
+
+    sala = normalizarSala(nombre)
+
+    if not sala:
+
+        return
+
+    if sala not in salasBase and sala not in salasDinamicas:
+
+        salasDinamicas.append(sala)
+        emitirSalas()
+
+    cambiarSala(sala)
+
+
+# =========================================
 # MENSAJES WEB
 # =========================================
+
+@socket.on("chat_message")
+def recibirMensajeSala(data):
+
+    if not isinstance(data, dict):
+
+        return
+
+    usuario = str(data.get("usuario", "")).strip()
+    texto_usuario = str(data.get("mensaje", "")).strip()
+    sala = str(data.get("sala", "general")).strip()
+
+    if not usuario or not texto_usuario:
+
+        return
+
+    if sala not in obtenerSalas():
+
+        sala = salasUsuario.get(
+            request.sid,
+            "general"
+        )
+
+    if sala != salasUsuario.get(request.sid):
+
+        cambiarSala(sala)
+
+    mensaje = f"{usuario}: {texto_usuario}"
+
+    print("Mensaje WEB:", mensaje, "Sala:", sala)
+
+    socket.emit(
+        "message",
+        mensaje,
+        to=sala
+    )
+
+    respuesta = get_command_response(
+        texto_usuario.strip().lower()
+    )
+
+    if respuesta:
+
+        socket.emit(
+            "message",
+            f"ByteBot: {respuesta['text']}",
+            to=sala
+        )
+
+    if sala == "general":
+
+        threading.Thread(
+            target=enviarTelegram,
+            args=(mensaje,),
+            daemon=True
+        ).start()
+
 
 @socket.on("message")
 def recibirMensaje(mensaje):
 
     print("Mensaje WEB:", mensaje)
 
-    # Mantiene la publicacion normal del mensaje escrito por el usuario.
-    send(mensaje, broadcast=True)
+    # Compatibilidad con clientes antiguos: el canal historico publica en general.
+    send(
+        mensaje,
+        to="general"
+    )
 
     # El cliente envia el formato "usuario: texto". Se toma solo el texto
     # y se compara completo para evitar activar comandos dentro de una frase.
@@ -1917,10 +2388,10 @@ def recibirMensaje(mensaje):
             # Esta respuesta no pasa por Telegram.
             send(
                 f"ByteBot: {respuesta['text']}",
-                broadcast=True
+                to="general"
             )
 
-    # Telegram se conserva como canal de notificaciones para mensajes web.
+    # Telegram se conserva como canal de notificaciones para mensajes web en general.
     threading.Thread(
         target=enviarTelegram,
         args=(mensaje,),
@@ -2011,7 +2482,8 @@ async def recibirTelegram(
 
     socket.emit(
         "telegram_message",
-        texto
+        texto,
+        to="general"
     )
 
     respuesta = get_command_response(mensaje)
@@ -2022,7 +2494,8 @@ async def recibirTelegram(
 
     socket.emit(
         "telegram_message",
-        f"ByteBot: {respuesta['text']}"
+        f"ByteBot: {respuesta['text']}",
+        to="general"
     )
 
     if (
