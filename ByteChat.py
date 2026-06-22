@@ -15,6 +15,42 @@ import requests
 
 
 # =========================================
+# CONFIG LOCAL
+# =========================================
+
+def cargar_config_local():
+
+    ruta_config = os.path.join(
+        os.path.dirname(__file__),
+        ".env.local"
+    )
+
+    if not os.path.exists(ruta_config):
+
+        return
+
+    with open(ruta_config, "r", encoding="utf-8") as config:
+
+        for linea in config:
+
+            linea = linea.strip()
+
+            if not linea or linea.startswith("#") or "=" not in linea:
+
+                continue
+
+            clave, valor = linea.split("=", 1)
+
+            os.environ.setdefault(
+                clave.strip().lstrip("\ufeff"),
+                valor.strip().strip('"').strip("'")
+            )
+
+
+cargar_config_local()
+
+
+# =========================================
 # CONFIG TELEGRAM
 # =========================================
 
@@ -59,52 +95,286 @@ usuarios = []
 
 
 # =========================================
-# RESPUESTAS AUTOMATICAS DE BYTEBOT
+# COMANDOS AUTOMATICOS DE BYTEBOT
 # =========================================
 
-# Cada clave es un comando exacto aceptado por el chat web.
-respuestasBot = {
+STATIC_DOCS_DIR = os.path.join(
+    app.root_path,
+    "static",
+    "docs"
+)
+
+TEAMBOOK_FILENAME = "teambook.pdf"
+TEAMBOOK_WEB_PATH = f"/static/docs/{TEAMBOOK_FILENAME}"
+TEAMBOOK_FILE_PATH = os.path.join(
+    STATIC_DOCS_DIR,
+    TEAMBOOK_FILENAME
+)
+
+
+COMMAND_RESPONSES = {
     "/ayuda": (
-        "Comandos disponibles: /cpp, /python, /complejidad, /greedy, "
-        "/dp, /bfs, /dfs, /dijkstra y /estructuras."
+        "\U0001f4cb BYTECHAT - AYUDA\n\n"
+        "Informacion\n"
+        "/info\n"
+        "/inscripcion\n"
+        "/requisitos\n"
+        "/ubicacion\n\n"
+        "Competencia\n"
+        "/reglas\n"
+        "/cronograma\n"
+        "/algoritmos\n\n"
+        "Recursos\n"
+        "/teambook\n\n"
+        "Contacto\n"
+        "/contacto\n\n"
+        "Escribe cualquiera de los comandos para obtener mas informacion."
     ),
-    "/cpp": (
-        "C++ es muy usado en programacion competitiva por su velocidad "
-        "y por la biblioteca STL, que incluye vectores, colas, mapas y algoritmos."
+    "/info": (
+        "\U0001f3c6 EVENTO DE PROGRAMACION COMPETITIVA 2026\n\n"
+        "Bienvenido al asistente oficial del evento.\n\n"
+        "Fecha: 15 de Agosto de 2026\n"
+        "Hora: 09:00 AM\n"
+        "Modalidad: Presencial\n"
+        "Participacion: Individual o por equipos\n\n"
+        "Este evento reunira estudiantes y entusiastas de la programacion "
+        "competitiva para resolver problemas algoritmicos en un entorno "
+        "desafiante y colaborativo.\n\n"
+        "Para mas informacion:\n"
+        "/inscripcion\n"
+        "/cronograma\n"
+        "/reglas"
     ),
-    "/python": (
-        "Python permite escribir soluciones rapidamente. Usa sys.stdin.readline "
-        "para entradas grandes y cuida el rendimiento en ciclos intensivos."
+    "/inscripcion": (
+        "\U0001f4dd INSCRIPCION\n\n"
+        "Para participar:\n\n"
+        "1. Completa el formulario de inscripcion.\n"
+        "2. Registra los integrantes del equipo.\n"
+        "3. Espera la confirmacion de tu registro.\n\n"
+        "Equipos:\n"
+        "- 1 a 3 integrantes\n\n"
+        "Fecha limite:\n"
+        "10 de Agosto de 2026\n\n"
+        "Consultas:\n"
+        "Usa /contacto"
     ),
-    "/complejidad": (
-        "La complejidad mide como crecen el tiempo y la memoria de un algoritmo. "
-        "Por ejemplo, O(n) es lineal y O(n log n) suele ser eficiente."
+    "/requisitos": (
+        "\U0001f4cb REQUISITOS DE PARTICIPACION\n\n"
+        "- Ser estudiante o invitado registrado.\n"
+        "- Contar con documento de identificacion.\n"
+        "- Llevar computadora portatil.\n"
+        "- Tener conocimientos basicos de programacion.\n\n"
+        "Lenguajes recomendados:\n"
+        "- C++\n"
+        "- Java\n"
+        "- Python\n\n"
+        "Para mas detalles:\n"
+        "/reglas"
     ),
-    "/greedy": (
-        "Un algoritmo greedy elige la mejor opcion local en cada paso. "
-        "Funciona solo cuando esas decisiones conducen a una solucion optima global."
+    "/ubicacion": (
+        "\U0001f4cd UBICACION DEL EVENTO\n\n"
+        "Auditorio Principal\n"
+        "Facultad de Ingenieria\n\n"
+        "Google Maps:\n"
+        "https://maps.app.goo.gl/4yG9mkKt3pUhmyjc9\n\n"
+        "Recomendacion:\n"
+        "Llegar al menos 30 minutos antes del inicio de la competencia."
     ),
-    "/dp": (
-        "La programacion dinamica resuelve subproblemas repetidos y guarda sus "
-        "resultados mediante memoizacion o tabulacion."
+    "/reglas": (
+        "\u2696\ufe0f REGLAMENTO GENERAL\n\n"
+        "Se permite:\n"
+        "- Uso del TeamBook oficial\n"
+        "- Documentacion impresa\n"
+        "- Material proporcionado por la organizacion\n\n"
+        "No se permite:\n"
+        "- Uso de Inteligencia Artificial durante la competencia\n"
+        "- Comunicacion con personas externas\n"
+        "- Compartir soluciones entre equipos\n\n"
+        "El incumplimiento puede ocasionar descalificacion."
+    ),
+    "/cronograma": (
+        "\U0001f552 CRONOGRAMA\n\n"
+        "08:30 - Registro de participantes\n"
+        "09:00 - Inauguracion\n"
+        "09:30 - Inicio de la competencia\n"
+        "13:00 - Receso\n"
+        "14:00 - Continuacion\n"
+        "17:00 - Fin de la competencia\n"
+        "17:30 - Premiacion\n\n"
+        "Los horarios pueden estar sujetos a cambios."
+    ),
+    "/contacto": (
+        "\U0001f4de CONTACTO OFICIAL\n\n"
+        "Email:\n"
+        "evento@universidad.edu\n\n"
+        "WhatsApp:\n"
+        "+591 70000000\n\n"
+        "Telegram:\n"
+        "@EventoProgramacion\n\n"
+        "Horario de atencion:\n"
+        "08:00 - 18:00"
+    ),
+    "/algoritmos": (
+        "\U0001f9e0 ALGORITMOS DISPONIBLES\n\n"
+        "/bfs\n"
+        "/dfs\n"
+        "/dijkstra\n"
+        "/dp\n"
+        "/greedy\n"
+        "/unionfind\n"
+        "/segmenttree\n\n"
+        "Estos comandos muestran una explicacion resumida de cada tecnica "
+        "utilizada en programacion competitiva."
     ),
     "/bfs": (
-        "BFS (Breadth First Search) recorre un grafo por niveles usando una cola. "
-        "Complejidad O(V+E)."
+        "\U0001f50e BFS - Breadth First Search\n\n"
+        "BFS recorre un grafo por niveles utilizando una cola.\n\n"
+        "Uso comun:\n"
+        "- Caminos minimos en grafos no ponderados\n"
+        "- Busqueda por niveles\n"
+        "- Problemas de estados\n\n"
+        "Estructura general:\n"
+        "1. Crear una cola.\n"
+        "2. Marcar el nodo inicial como visitado.\n"
+        "3. Procesar nodos mientras la cola no este vacia.\n"
+        "4. Agregar vecinos no visitados."
     ),
     "/dfs": (
-        "DFS (Depth First Search) explora un camino en profundidad usando recursion "
-        "o una pila. Complejidad O(V+E)."
+        "\U0001f332 DFS - Depth First Search\n\n"
+        "DFS recorre un grafo profundizando por cada rama antes de retroceder.\n\n"
+        "Uso comun:\n"
+        "- Componentes conectados\n"
+        "- Deteccion de ciclos\n"
+        "- Backtracking\n"
+        "- Ordenamiento topologico\n\n"
+        "Estructura general:\n"
+        "1. Marcar el nodo actual.\n"
+        "2. Recorrer sus vecinos.\n"
+        "3. Llamar recursivamente a los no visitados."
     ),
     "/dijkstra": (
-        "Dijkstra encuentra caminos minimos desde un origen en grafos con pesos "
-        "no negativos, normalmente usando una cola de prioridad."
+        "\U0001f6e3\ufe0f DIJKSTRA\n\n"
+        "Dijkstra encuentra caminos minimos en grafos con pesos no negativos.\n\n"
+        "Uso comun:\n"
+        "- Rutas minimas\n"
+        "- Grafos ponderados\n"
+        "- Optimizacion de costos\n\n"
+        "Estructura general:\n"
+        "1. Inicializar distancias en infinito.\n"
+        "2. Usar una cola de prioridad.\n"
+        "3. Relajar aristas.\n"
+        "4. Actualizar distancias minimas."
     ),
-    "/estructuras": (
-        "Las estructuras mas comunes son arreglos, pilas, colas, conjuntos, mapas, "
-        "heaps y grafos. Elige segun las operaciones que necesites optimizar."
+    "/greedy": (
+        "\u26a1 GREEDY\n\n"
+        "Greedy toma la mejor decision local en cada paso esperando llegar "
+        "a una solucion optima.\n\n"
+        "Uso comun:\n"
+        "- Intervalos\n"
+        "- Seleccion de actividades\n"
+        "- Huffman\n"
+        "- Problemas de ordenamiento\n\n"
+        "Estructura general:\n"
+        "1. Ordenar o priorizar elementos.\n"
+        "2. Elegir la mejor opcion actual.\n"
+        "3. Verificar si la eleccion mantiene la solucion valida."
+    ),
+    "/dp": (
+        "\U0001f9e9 PROGRAMACION DINAMICA\n\n"
+        "La Programacion Dinamica resuelve problemas dividiendolos en "
+        "subproblemas y reutilizando resultados.\n\n"
+        "Uso comun:\n"
+        "- Mochila\n"
+        "- Caminos\n"
+        "- Subsecuencias\n"
+        "- Optimizacion\n\n"
+        "Estructura general:\n"
+        "1. Definir estado.\n"
+        "2. Definir transicion.\n"
+        "3. Definir casos base.\n"
+        "4. Calcular la respuesta."
+    ),
+    "/unionfind": (
+        "\U0001f517 UNION FIND\n\n"
+        "Union Find permite manejar conjuntos disjuntos eficientemente.\n\n"
+        "Uso comun:\n"
+        "- Componentes conectados\n"
+        "- Kruskal\n"
+        "- Deteccion de ciclos\n"
+        "- Agrupacion de elementos\n\n"
+        "Operaciones:\n"
+        "- find(x): encuentra el representante.\n"
+        "- union(a, b): une dos conjuntos."
+    ),
+    "/segmenttree": (
+        "\U0001f333 SEGMENT TREE\n\n"
+        "Segment Tree permite responder consultas sobre rangos de manera "
+        "eficiente.\n\n"
+        "Uso comun:\n"
+        "- Suma en rangos\n"
+        "- Minimo o maximo en rangos\n"
+        "- Actualizaciones puntuales\n"
+        "- Problemas con muchas consultas\n\n"
+        "Estructura general:\n"
+        "1. Construir el arbol.\n"
+        "2. Consultar rangos.\n"
+        "3. Actualizar valores."
     )
 }
+
+
+def get_teambook_response():
+
+    if not os.path.exists(TEAMBOOK_FILE_PATH):
+
+        return {
+            "command": "/teambook",
+            "text": (
+                "El TeamBook aun no esta disponible. "
+                "Intenta nuevamente mas tarde."
+            ),
+            "document_path": None,
+            "document_url": TEAMBOOK_WEB_PATH
+        }
+
+    return {
+        "command": "/teambook",
+        "text": (
+            "\U0001f4da TEAMBOOK OFICIAL\n\n"
+            "El TeamBook contiene material de apoyo para la competencia:\n\n"
+            "- Grafos\n"
+            "- Programacion Dinamica\n"
+            "- Estructuras de Datos\n"
+            "- Matematica Computacional\n"
+            "- Tecnicas de Programacion Competitiva\n\n"
+            "Descargar TeamBook:\n"
+            f"{TEAMBOOK_WEB_PATH}"
+        ),
+        "document_path": TEAMBOOK_FILE_PATH,
+        "document_url": TEAMBOOK_WEB_PATH
+    }
+
+
+def get_command_response(message):
+
+    command = message.strip().lower()
+
+    if command == "/teambook":
+
+        return get_teambook_response()
+
+    response = COMMAND_RESPONSES.get(command)
+
+    if not response:
+
+        return None
+
+    return {
+        "command": command,
+        "text": response,
+        "document_path": None,
+        "document_url": None
+    }
 
 
 # =========================================
@@ -522,6 +792,15 @@ body{
     font-size:15px;
 
     line-height:1.4;
+
+    white-space:pre-wrap;
+}
+
+.msg-bubble a{
+
+    color:#bfdbfe;
+
+    font-weight:700;
 }
 
 .msg-time{
@@ -999,6 +1278,36 @@ function agregarSistema(texto){
 }
 
 // =========================================
+// FORMATO SEGURO DE TEXTO
+// =========================================
+
+function escaparHTML(texto){
+
+    return texto
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function formatearTextoMensaje(texto){
+
+    let seguro =
+        escaparHTML(texto);
+
+    return seguro.replace(
+        /(https?:\/\/[^\s<]+|\/static\/docs\/[^\s<]+)/g,
+        function(url){
+
+            return '<a href="' + url + '" target="_blank" rel="noopener">' +
+                url +
+            '</a>';
+        }
+    );
+}
+
+// =========================================
 // MENSAJES
 // =========================================
 
@@ -1076,7 +1385,7 @@ function agregarMensaje(
         '<div class="msg-bubble">' +
 
             '<p>' +
-                texto +
+                formatearTextoMensaje(texto) +
             '</p>' +
 
             '<span class="msg-time">' +
@@ -1134,14 +1443,14 @@ def recibirMensaje(mensaje):
     if separador:
 
         comando = textoUsuario.strip().lower()
-        respuesta = respuestasBot.get(comando)
+        respuesta = get_command_response(comando)
 
         if respuesta:
 
             # ByteBot responde directamente en el chat web mediante SocketIO.
             # Esta respuesta no pasa por Telegram.
             send(
-                f"ByteBot: {respuesta}",
+                f"ByteBot: {respuesta['text']}",
                 broadcast=True
             )
 
@@ -1203,6 +1512,21 @@ async def recibirTelegram(
     context: ContextTypes.DEFAULT_TYPE
 ):
 
+    global chatID
+
+    if not update.message or not update.message.text:
+
+        return
+
+    if not chatID and update.effective_chat:
+
+        chatID = str(update.effective_chat.id)
+
+        print(
+            "CHAT_ID detectado para pruebas locales:",
+            chatID
+        )
+
     usuario = (
         update.message
         .from_user
@@ -1218,6 +1542,36 @@ async def recibirTelegram(
     socket.emit(
         "telegram_message",
         texto
+    )
+
+    respuesta = get_command_response(mensaje)
+
+    if not respuesta:
+
+        return
+
+    socket.emit(
+        "telegram_message",
+        f"ByteBot: {respuesta['text']}"
+    )
+
+    if (
+        respuesta["command"] == "/teambook"
+        and respuesta["document_path"]
+    ):
+
+        with open(respuesta["document_path"], "rb") as documento:
+
+            await update.message.reply_document(
+                document=documento,
+                filename=TEAMBOOK_FILENAME,
+                caption=respuesta["text"]
+            )
+
+        return
+
+    await update.message.reply_text(
+        respuesta["text"]
     )
 
 
@@ -1267,7 +1621,7 @@ def iniciarBotTelegram():
     botTelegram.add_handler(
 
         MessageHandler(
-            filters.TEXT & ~filters.COMMAND,
+            filters.TEXT,
             recibirTelegram
         )
     )
