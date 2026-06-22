@@ -1,0 +1,23 @@
+BFS
+Busqueda en anchura para recorrer grafos por niveles. Se usa cuando interesa la distancia minima en grafos no ponderados.
+
+DFS
+Busqueda en profundidad para explorar ramas completas antes de retroceder. Es util en componentes conexas, ciclos, ordenamientos y backtracking.
+
+Dijkstra
+Algoritmo para caminos minimos en grafos con pesos no negativos. Suele implementarse con cola de prioridad.
+
+Programacion dinamica
+Tecnica para resolver problemas con subproblemas repetidos y estructura optima. Usa memoizacion o tablas iterativas.
+
+Greedy
+Estrategia que toma la mejor decision local esperando construir una solucion global. Requiere demostrar que la eleccion local es segura.
+
+Backtracking
+Exploracion sistematica de posibilidades con retroceso. Se usa en busquedas combinatorias y problemas de restricciones.
+
+Union Find
+Estructura para manejar conjuntos disjuntos con operaciones union y find. Es comun en Kruskal y conectividad dinamica.
+
+Segment Tree
+Estructura para consultas y actualizaciones eficientes sobre rangos. Se usa para sumas, minimos, maximos y variantes con lazy propagation.

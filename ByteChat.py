@@ -14,6 +14,8 @@ import os
 import threading
 import requests
 
+from gemini_service import preguntar_ia
+
 
 # =========================================
 # CONFIG LOCAL
@@ -117,18 +119,22 @@ usuariosTelegram = set()
 salasBase = [
     "general",
     "anuncios",
-    "soporte"
+    "soporte",
+    "ia"
 ]
 salasDinamicas = []
 salasUsuario = {}
 mensajesFijados = {
     "general": "",
-    "anuncios": ""
+    "anuncios": "",
+    "soporte": "",
+    "ia": ""
 }
 historialSalas = {
     "general": [],
     "anuncios": [],
-    "soporte": []
+    "soporte": [],
+    "ia": []
 }
 tickets = {}
 ticketContador = 0
@@ -1447,6 +1453,8 @@ body{
 
     display:flex;
     flex-direction:column;
+    height:100vh;
+    overflow-y:auto;
 
     backdrop-filter:blur(10px);
 }
@@ -1458,9 +1466,76 @@ body{
     display:none;
 }
 
-.rooms-panel{
-    padding:16px 18px;
+.sidebar-section{
     border-bottom:1px solid var(--border);
+}
+
+.section-toggle{
+    width:100%;
+    border:none;
+    background:transparent;
+    color:#e5e7eb;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 18px;
+    cursor:pointer;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-size:13px;
+}
+
+.section-title{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.section-arrow{
+    color:var(--secondary);
+    font-size:12px;
+    width:14px;
+}
+
+.section-content{
+    padding:0 18px 14px;
+}
+
+.sidebar-section.collapsed .section-content{
+    display:none;
+}
+
+.sidebar-subtitle{
+    color:#94a3b8;
+    font-size:12px;
+    margin:12px 0 8px;
+    text-transform:uppercase;
+    letter-spacing:.8px;
+}
+
+.rooms-panel .quick-commands{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid var(--border);
+}
+
+.quick-command{
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:9px 11px;
+    background:#1e293b;
+    color:white;
+    text-align:left;
+    cursor:pointer;
+}
+
+.rooms-panel{
+    flex-shrink:0;
 }
 
 .rooms-panel h3{
@@ -1476,6 +1551,9 @@ body{
     flex-direction:column;
     gap:8px;
     margin-bottom:12px;
+    max-height:230px;
+    overflow-y:auto;
+    padding-right:4px;
 }
 
 .room-item{
@@ -1520,8 +1598,7 @@ body{
 }
 
 .support-panel{
-    padding:16px 18px;
-    border-top:1px solid var(--border);
+    flex-shrink:0;
 }
 
 .support-panel h3{
@@ -1561,14 +1638,31 @@ body{
     font-weight:700;
 }
 
+.support-actions{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
 .ticket-list-item{
     width:100%;
     text-align:left;
     background:#1e293b;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:10px 11px;
+    color:#e5e7eb;
+    margin-bottom:6px;
+}
+
+#misTickets{
+    max-height:170px;
+    overflow-y:auto;
+    padding-right:4px;
 }
 
 .ticket-conversation{
-    max-height:220px;
+    max-height:180px;
     overflow-y:auto;
     border:1px solid var(--border);
     border-radius:10px;
@@ -1684,11 +1778,18 @@ body{
 
 .users-list{
 
-    flex:1;
+    flex-shrink:0;
 
+    overflow:hidden;
+
+    padding:0;
+}
+
+.users-list .section-content{
+    max-height:220px;
     overflow-y:auto;
-
-    padding:18px;
+    padding-right:12px;
+    padding-left:18px;
 }
 
 .users-list h3{
@@ -2100,7 +2201,7 @@ body{
     body{
         height:100dvh;
         height:var(--app-height, 100dvh);
-        overflow:hidden;
+        overflow-y:auto;
     }
 
     .chat-container{
@@ -2166,7 +2267,7 @@ body{
         height:var(--app-height, 100dvh);
         max-height:none;
         flex-shrink:0;
-        overflow-y:auto;
+        overflow:hidden;
         transform:translateX(-100%);
         transition:transform .2s ease;
         box-shadow:18px 0 40px rgba(0,0,0,.35);
@@ -2214,18 +2315,19 @@ body{
         padding:11px;
     }
 
-    .rooms-panel{
-        padding:12px;
+    .section-toggle{
+        padding:11px 12px;
+        font-size:12px;
     }
 
-    .rooms-panel h3{
-        font-size:12px;
-        margin-bottom:8px;
+    .section-content{
+        padding:0 12px 12px;
     }
 
     .rooms-list{
         gap:6px;
         margin-bottom:10px;
+        max-height:155px;
     }
 
     .room-item{
@@ -2235,14 +2337,15 @@ body{
     .users-list{
 
         flex:none;
-        max-height:220px;
-        padding:10px 12px;
-        overflow-y:auto;
+        max-height:none;
+        padding:0;
+        overflow:hidden;
     }
 
-    .users-list h3{
-        font-size:12px;
-        margin-bottom:8px;
+    .users-list .section-content{
+        max-height:155px;
+        padding:0 12px 12px;
+        overflow-y:auto;
     }
 
     .user-item{
@@ -2259,8 +2362,6 @@ body{
         display:flex;
         flex-direction:column;
         gap:8px;
-        padding:12px;
-        border-top:1px solid var(--border);
     }
 
     .quick-commands h3{
@@ -2273,11 +2374,19 @@ body{
     .quick-command{
         border:1px solid var(--border);
         border-radius:10px;
-        padding:10px 12px;
+        padding:9px 11px;
         background:#1e293b;
         color:white;
         text-align:left;
         cursor:pointer;
+    }
+
+    #misTickets{
+        max-height:130px;
+    }
+
+    .ticket-conversation{
+        max-height:140px;
     }
 
     .chat-main{
@@ -2400,110 +2509,147 @@ body{
 
         </div>
 
-        <div class="rooms-panel">
+        <div class="sidebar-section rooms-panel">
 
-            <h3>Salas</h3>
-
-            <div
-                id="listaSalas"
-                class="rooms-list"
-            ></div>
-
-            <form
-                class="room-create"
-                onsubmit="event.preventDefault(); crearSalaEquipo();"
+            <button
+                type="button"
+                class="section-toggle"
+                onclick="toggleSidebarSection(this)"
             >
-                <input
-                    type="text"
-                    id="nombreSalaEquipo"
-                    placeholder="Nombre del equipo"
+                <span class="section-title">
+                    <span class="section-arrow">▼</span>
+                    Canales
+                </span>
+            </button>
+
+            <div class="section-content">
+
+                <div
+                    id="listaSalas"
+                    class="rooms-list"
+                ></div>
+
+                <form
+                    class="room-create"
+                    onsubmit="event.preventDefault(); crearSalaEquipo();"
                 >
+                    <input
+                        type="text"
+                        id="nombreSalaEquipo"
+                        placeholder="Nombre del equipo"
+                    >
 
-                <button type="submit">+</button>
-            </form>
+                    <button type="submit">+</button>
+                </form>
 
-        </div>
+                <div class="quick-commands">
 
-        <div class="users-list">
+                    <h3>Comandos rapidos</h3>
 
-            <h3>Conectados</h3>
+                    <button
+                        type="button"
+                        class="quick-command"
+                        onclick="enviarComandoRapido('/ayuda')"
+                    >
+                        /ayuda
+                    </button>
 
-            <div id="listaUsuarios"></div>
+                    <button
+                        type="button"
+                        class="quick-command"
+                        onclick="enviarComandoRapido('/ubicacion')"
+                    >
+                        /ubicacion
+                    </button>
 
-        </div>
+                    <button
+                        type="button"
+                        class="quick-command"
+                        onclick="enviarComandoRapido('/teambook')"
+                    >
+                        /teambook
+                    </button>
 
-        <div class="quick-commands">
+                </div>
 
-            <h3>Comandos rapidos</h3>
-
-            <button
-                type="button"
-                class="quick-command"
-                onclick="enviarComandoRapido('/ayuda')"
-            >
-                /ayuda
-            </button>
-
-            <button
-                type="button"
-                class="quick-command"
-                onclick="enviarComandoRapido('/ubicacion')"
-            >
-                /ubicacion
-            </button>
-
-            <button
-                type="button"
-                class="quick-command"
-                onclick="enviarComandoRapido('/teambook')"
-            >
-                /teambook
-            </button>
-
-        </div>
-
-        <div class="support-panel">
-
-            <h3>Soporte</h3>
-
-            <button
-                type="button"
-                onclick="mostrarFormularioTicket()"
-            >
-                Crear ticket de soporte
-            </button>
-
-            <div id="ticketForm" style="display:none;">
-                <input
-                    type="text"
-                    id="ticketAsunto"
-                    placeholder="Asunto"
-                >
-                <textarea
-                    id="ticketMensaje"
-                    placeholder="Mensaje inicial"
-                ></textarea>
-                <button type="button" onclick="crearTicketSoporte()">
-                    Enviar ticket
-                </button>
             </div>
 
-            <h3>Mis tickets</h3>
-            <div id="misTickets"></div>
+        </div>
 
-            <div id="ticketDetalle" style="display:none;">
-                <h3 id="ticketTitulo"></h3>
-                <div
-                    id="ticketConversacion"
-                    class="ticket-conversation"
-                ></div>
-                <textarea
-                    id="ticketRespuesta"
-                    placeholder="Responder ticket"
-                ></textarea>
-                <button type="button" onclick="responderTicketUsuario()">
-                    Responder
+        <div class="sidebar-section support-panel">
+
+            <button
+                type="button"
+                class="section-toggle"
+                onclick="toggleSidebarSection(this)"
+            >
+                <span class="section-title">
+                    <span class="section-arrow">▼</span>
+                    Soporte
+                </span>
+            </button>
+
+            <div class="section-content">
+
+                <button
+                    type="button"
+                    onclick="mostrarFormularioTicket()"
+                >
+                    Crear ticket
                 </button>
+
+                <div id="ticketForm" style="display:none;">
+                    <input
+                        type="text"
+                        id="ticketAsunto"
+                        placeholder="Asunto"
+                    >
+                    <textarea
+                        id="ticketMensaje"
+                        placeholder="Mensaje inicial"
+                    ></textarea>
+                    <button type="button" onclick="crearTicketSoporte()">
+                        Enviar ticket
+                    </button>
+                </div>
+
+                <h3>Mis tickets</h3>
+                <div id="misTickets"></div>
+
+                <div id="ticketDetalle" style="display:none;">
+                    <h3 id="ticketTitulo"></h3>
+                    <div
+                        id="ticketConversacion"
+                        class="ticket-conversation"
+                    ></div>
+                    <textarea
+                        id="ticketRespuesta"
+                        placeholder="Responder ticket"
+                    ></textarea>
+                    <button type="button" onclick="responderTicketUsuario()">
+                        Responder
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="sidebar-section users-list">
+
+            <button
+                type="button"
+                class="section-toggle"
+                onclick="toggleSidebarSection(this)"
+            >
+                <span class="section-title">
+                    <span class="section-arrow">▼</span>
+                    Conectados
+                </span>
+            </button>
+
+            <div class="section-content">
+                <div id="listaUsuarios"></div>
             </div>
 
         </div>
@@ -2588,12 +2734,14 @@ var salaActual = "general";
 var salasDisponibles = [
     "general",
     "anuncios",
-    "soporte"
+    "soporte",
+    "ia"
 ];
 var mensajesFijados = {
     general:"",
     anuncios:"",
-    soporte:""
+    soporte:"",
+    ia:""
 };
 var ticketsUsuario = [];
 var ticketActual = "";
@@ -2665,6 +2813,28 @@ function enviarComandoRapido(comando){
     enviar();
 }
 
+function toggleSidebarSection(boton){
+
+    let section =
+        boton.closest(".sidebar-section");
+
+    if(!section){
+        return;
+    }
+
+    section.classList.toggle("collapsed");
+
+    let arrow =
+        section.querySelector(".section-arrow");
+
+    if(arrow){
+        arrow.textContent =
+            section.classList.contains("collapsed")
+            ? "▶"
+            : "▼";
+    }
+}
+
 // =========================================
 // SALAS
 // =========================================
@@ -2681,6 +2851,10 @@ function nombreSalaLegible(sala){
 
     if(sala == "soporte"){
         return "Soporte";
+    }
+
+    if(sala == "ia"){
+        return "IA";
     }
 
     return sala.replace(/-/g, " ");
@@ -3198,7 +3372,8 @@ socket.on("chat_reiniciado", function(data){
         : [
             "general",
             "anuncios",
-            "soporte"
+            "soporte",
+            "ia"
         ];
 
     salasDisponibles =
@@ -3213,7 +3388,8 @@ socket.on("chat_reiniciado", function(data){
     mensajesFijados = {
         general:"",
         anuncios:"",
-        soporte:""
+        soporte:"",
+        ia:""
     };
 
     actualizarSalaActual();
