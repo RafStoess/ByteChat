@@ -3961,6 +3961,24 @@ def recibirMensajeSala(data):
         to=sala
     )
 
+    if sala == "ia":
+
+        mensaje_pensando = "ByteBot IA: esta pensando..."
+
+        socket.emit(
+            "message",
+            mensaje_pensando,
+            to=sala
+        )
+
+        threading.Thread(
+            target=responderIAEnSegundoPlano,
+            args=(texto_usuario,),
+            daemon=True
+        ).start()
+
+        return
+
     respuesta = get_command_response(
         texto_usuario.strip().lower()
     )
@@ -3987,6 +4005,26 @@ def recibirMensajeSala(data):
             args=(mensaje,),
             daemon=True
         ).start()
+
+
+def responderIAEnSegundoPlano(pregunta):
+
+    respuesta = preguntar_ia(
+        pregunta
+    )
+
+    mensaje_ia = f"ByteBot IA: {respuesta}"
+
+    guardarHistorialSala(
+        "ia",
+        mensaje_ia
+    )
+
+    socket.emit(
+        "message",
+        mensaje_ia,
+        to="ia"
+    )
 
 
 @socket.on("message")
