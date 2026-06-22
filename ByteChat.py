@@ -130,6 +130,8 @@ historialSalas = {
     "anuncios": [],
     "soporte": []
 }
+tickets = {}
+ticketContador = 0
 
 
 def obtenerSalas():
@@ -299,6 +301,87 @@ def reiniciarChatEvento():
             "mensaje": "El chat fue reiniciado por el administrador.",
             "salas": obtenerSalas()
         }
+    )
+
+
+def crearTicketId():
+
+    global ticketContador
+
+    ticketContador += 1
+
+    return f"TICKET-{ticketContador:03d}"
+
+
+def serializarTicket(ticket):
+
+    return {
+        "id": ticket["id"],
+        "usuario": ticket["usuario"],
+        "asunto": ticket["asunto"],
+        "estado": ticket["estado"],
+        "mensajes": ticket["mensajes"],
+        "ultimo": (
+            ticket["mensajes"][-1]["texto"]
+            if ticket["mensajes"]
+            else ""
+        )
+    }
+
+
+def obtenerTicketsUsuario(usuario):
+
+    return [
+        serializarTicket(ticket)
+        for ticket in tickets.values()
+        if ticket["usuario"] == usuario
+    ]
+
+
+def emitirTicketsUsuario(usuario):
+
+    for sid, nombre in usuariosWeb.items():
+
+        if nombre == usuario:
+
+            socket.emit(
+                "tickets_usuario",
+                obtenerTicketsUsuario(usuario),
+                to=sid
+            )
+
+
+def emitirTicketPrivado(ticket_id):
+
+    ticket = tickets.get(ticket_id)
+
+    if not ticket:
+
+        return
+
+    data = serializarTicket(ticket)
+    room = f"ticket-{ticket_id}"
+
+    socket.emit(
+        "ticket_detalle",
+        data,
+        to=room
+    )
+
+    for sid, nombre in usuariosWeb.items():
+
+        if nombre == ticket["usuario"]:
+
+            socket.emit(
+                "ticket_actualizado",
+                data,
+                to=sid
+            )
+
+    socket.emit(
+        "tickets_admin_actualizados",
+        True,
+        to="admins"
     )
 
 
@@ -759,7 +842,8 @@ button{{
 
 def renderAdminDashboard(
     mensaje="",
-    sala_seleccionada="anuncios"
+    sala_seleccionada="anuncios",
+    ticket_seleccionado=""
 ):
 
     mensaje_html = ""
@@ -786,6 +870,80 @@ def renderAdminDashboard(
         if sala_seleccionada == "anuncios"
         else ""
     )
+
+    tickets_html = ""
+
+    for ticket in tickets.values():
+
+        ultimo = html.escape(
+            ticket["mensajes"][-1]["texto"]
+            if ticket["mensajes"]
+            else ""
+        )
+
+        tickets_html += f"""
+        <div class="ticket-row">
+            <strong>{html.escape(ticket["id"])}</strong>
+            <span>{html.escape(ticket["usuario"])}</span>
+            <span>{html.escape(ticket["asunto"])}</span>
+            <span>{html.escape(ticket["estado"])}</span>
+            <small>{ultimo}</small>
+            <form method="get" action="/admin/dashboard">
+                <button name="ticket" value="{html.escape(ticket["id"])}" type="submit">
+                    Abrir
+                </button>
+            </form>
+        </div>
+        """
+
+    if not tickets_html:
+
+        tickets_html = "<p class='current'>No hay tickets de soporte.</p>"
+
+    ticket_detalle_html = ""
+    ticket_actual = tickets.get(ticket_seleccionado)
+
+    if ticket_actual:
+
+        mensajes_ticket = ""
+
+        for mensaje_ticket in ticket_actual["mensajes"]:
+
+            mensajes_ticket += (
+                "<p class='ticket-message'>"
+                f"<strong>{html.escape(mensaje_ticket['autor'])}:</strong> "
+                f"{html.escape(mensaje_ticket['texto'])}"
+                "</p>"
+            )
+
+        respuesta_form = ""
+
+        if ticket_actual["estado"] == "abierto":
+
+            respuesta_form = f"""
+            <form method="post" action="/admin/dashboard">
+                <input type="hidden" name="ticket_id" value="{html.escape(ticket_actual["id"])}">
+                <textarea name="respuesta_admin" placeholder="Responder al ticket..."></textarea>
+                <button name="accion" value="responder_ticket_admin" type="submit">
+                    Responder ticket
+                </button>
+                <button class="danger" name="accion" value="cerrar_ticket" type="submit">
+                    Cerrar ticket
+                </button>
+            </form>
+            """
+        else:
+
+            respuesta_form = "<p class='current'>Este ticket esta cerrado.</p>"
+
+        ticket_detalle_html = f"""
+        <div class="ticket-detail">
+            <h3>{html.escape(ticket_actual["id"])} - {html.escape(ticket_actual["asunto"])}</h3>
+            <p>Usuario: {html.escape(ticket_actual["usuario"])} | Estado: {html.escape(ticket_actual["estado"])}</p>
+            <div>{mensajes_ticket}</div>
+            {respuesta_form}
+        </div>
+        """
 
     return f"""
 <!DOCTYPE html>
@@ -865,6 +1023,31 @@ button{{
     padding:12px;
     border-radius:8px;
 }}
+.ticket-row{{
+    display:grid;
+    grid-template-columns:110px 1fr 1fr 90px 1.5fr auto;
+    gap:8px;
+    align-items:center;
+    padding:10px;
+    border-bottom:1px solid #243041;
+}}
+.ticket-row small{{
+    color:#94a3b8;
+}}
+.ticket-row form{{
+    margin:0;
+}}
+.ticket-message{{
+    white-space:pre-wrap;
+    background:#1e293b;
+    border-radius:8px;
+    padding:10px;
+}}
+@media(max-width:700px){{
+    .ticket-row{{
+        grid-template-columns:1fr;
+    }}
+}}
 </style>
 </head>
 <body>
@@ -912,7 +1095,21 @@ button{{
             </button>
         </form>
     </section>
+    <section class="panel">
+        <h2>Tickets de soporte</h2>
+        {tickets_html}
+        {ticket_detalle_html}
+    </section>
 </main>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+var adminSocket = io();
+adminSocket.emit("admin_conectar");
+adminSocket.on("tickets_admin_actualizados", function(){{
+    // El panel admin usa formularios simples; recargar mantiene la vista actualizada.
+    window.location.reload();
+}});
+</script>
 </body>
 </html>
 """
@@ -974,6 +1171,13 @@ def adminDashboard():
         )
 
     mensaje_estado = ""
+    ticket_seleccionado = request.values.get(
+        "ticket",
+        request.values.get(
+            "ticket_id",
+            ""
+        )
+    )
     sala_seleccionada = request.form.get(
         "sala_fijado",
         "anuncios"
@@ -1082,9 +1286,65 @@ def adminDashboard():
 
             mensaje_estado = "Chat reiniciado para un nuevo evento."
 
+        elif accion == "responder_ticket_admin":
+
+            ticket_id = request.form.get(
+                "ticket_id",
+                ""
+            )
+
+            respuesta = request.form.get(
+                "respuesta_admin",
+                ""
+            ).strip()
+
+            ticket = tickets.get(ticket_id)
+
+            if ticket and respuesta and ticket["estado"] == "abierto":
+
+                ticket["mensajes"].append({
+                    "autor": "Admin",
+                    "texto": respuesta
+                })
+
+                ticket["mensajes"] = ticket["mensajes"][-50:]
+
+                emitirTicketPrivado(ticket_id)
+                emitirTicketsUsuario(ticket["usuario"])
+
+                mensaje_estado = "Respuesta enviada al ticket."
+                ticket_seleccionado = ticket_id
+
+        elif accion == "cerrar_ticket":
+
+            ticket_id = request.form.get(
+                "ticket_id",
+                ""
+            )
+
+            ticket = tickets.get(ticket_id)
+
+            if ticket:
+
+                ticket["estado"] = "cerrado"
+
+                ticket["mensajes"].append({
+                    "autor": "Sistema",
+                    "texto": "El ticket fue cerrado por el administrador."
+                })
+
+                ticket["mensajes"] = ticket["mensajes"][-50:]
+
+                emitirTicketPrivado(ticket_id)
+                emitirTicketsUsuario(ticket["usuario"])
+
+                mensaje_estado = "Ticket cerrado."
+                ticket_seleccionado = ticket_id
+
     return renderAdminDashboard(
         mensaje_estado,
-        sala_seleccionada
+        sala_seleccionada,
+        ticket_seleccionado
     )
 
 
@@ -1257,6 +1517,70 @@ body{
     color:white;
     cursor:pointer;
     font-weight:bold;
+}
+
+.support-panel{
+    padding:16px 18px;
+    border-top:1px solid var(--border);
+}
+
+.support-panel h3{
+    color:#94a3b8;
+    font-size:13px;
+    margin-bottom:10px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.support-panel input,
+.support-panel textarea{
+    width:100%;
+    margin-bottom:8px;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    background:#1e293b;
+    color:white;
+    outline:none;
+    box-sizing:border-box;
+}
+
+.support-panel textarea{
+    min-height:70px;
+    resize:vertical;
+}
+
+.support-panel button{
+    border:none;
+    border-radius:10px;
+    padding:9px 11px;
+    margin:4px 4px 4px 0;
+    background:var(--secondary);
+    color:white;
+    cursor:pointer;
+    font-weight:700;
+}
+
+.ticket-list-item{
+    width:100%;
+    text-align:left;
+    background:#1e293b;
+}
+
+.ticket-conversation{
+    max-height:220px;
+    overflow-y:auto;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:8px;
+    margin:8px 0;
+}
+
+.ticket-conversation p{
+    color:#e5e7eb;
+    font-size:13px;
+    margin-bottom:7px;
+    white-space:pre-wrap;
 }
 
 /* =========================================
@@ -2138,6 +2462,52 @@ body{
 
         </div>
 
+        <div class="support-panel">
+
+            <h3>Soporte</h3>
+
+            <button
+                type="button"
+                onclick="mostrarFormularioTicket()"
+            >
+                Crear ticket de soporte
+            </button>
+
+            <div id="ticketForm" style="display:none;">
+                <input
+                    type="text"
+                    id="ticketAsunto"
+                    placeholder="Asunto"
+                >
+                <textarea
+                    id="ticketMensaje"
+                    placeholder="Mensaje inicial"
+                ></textarea>
+                <button type="button" onclick="crearTicketSoporte()">
+                    Enviar ticket
+                </button>
+            </div>
+
+            <h3>Mis tickets</h3>
+            <div id="misTickets"></div>
+
+            <div id="ticketDetalle" style="display:none;">
+                <h3 id="ticketTitulo"></h3>
+                <div
+                    id="ticketConversacion"
+                    class="ticket-conversation"
+                ></div>
+                <textarea
+                    id="ticketRespuesta"
+                    placeholder="Responder ticket"
+                ></textarea>
+                <button type="button" onclick="responderTicketUsuario()">
+                    Responder
+                </button>
+            </div>
+
+        </div>
+
     </aside>
 
     <div
@@ -2225,6 +2595,8 @@ var mensajesFijados = {
     anuncios:"",
     soporte:""
 };
+var ticketsUsuario = [];
+var ticketActual = "";
 
 // =========================================
 // ALTURA MOVIL SEGURA
@@ -2419,6 +2791,149 @@ function crearSalaEquipo(){
 }
 
 // =========================================
+// TICKETS DE SOPORTE
+// =========================================
+
+function mostrarFormularioTicket(){
+
+    let form =
+        document.getElementById("ticketForm");
+
+    form.style.display =
+        form.style.display == "none"
+        ? "block"
+        : "none";
+}
+
+function crearTicketSoporte(){
+
+    if(nombre == ""){
+        alert("Ingrese nombre");
+        return;
+    }
+
+    let asunto =
+        document.getElementById("ticketAsunto").value.trim();
+
+    let mensaje =
+        document.getElementById("ticketMensaje").value.trim();
+
+    if(asunto == "" || mensaje == ""){
+        return;
+    }
+
+    socket.emit(
+        "crear_ticket",
+        {
+            asunto:asunto,
+            mensaje:mensaje
+        }
+    );
+
+    document.getElementById("ticketAsunto").value = "";
+    document.getElementById("ticketMensaje").value = "";
+    document.getElementById("ticketForm").style.display = "none";
+}
+
+function actualizarMisTickets(tickets){
+
+    ticketsUsuario =
+        tickets || [];
+
+    let lista =
+        document.getElementById("misTickets");
+
+    lista.innerHTML = "";
+
+    if(ticketsUsuario.length == 0){
+        lista.innerHTML = "<p class='user-status'>Sin tickets.</p>";
+        return;
+    }
+
+    ticketsUsuario.forEach(function(ticket){
+
+        let boton =
+            document.createElement("button");
+
+        boton.type = "button";
+        boton.className = "ticket-list-item";
+        boton.textContent =
+            ticket.id + " - " + ticket.asunto + " (" + ticket.estado + ")";
+
+        boton.onclick = function(){
+            abrirTicket(ticket.id);
+        };
+
+        lista.appendChild(boton);
+    });
+}
+
+function abrirTicket(ticketId){
+
+    ticketActual =
+        ticketId;
+
+    socket.emit(
+        "abrir_ticket",
+        ticketId
+    );
+}
+
+function mostrarTicket(ticket){
+
+    ticketActual =
+        ticket.id;
+
+    document.getElementById("ticketDetalle").style.display =
+        "block";
+
+    document.getElementById("ticketTitulo").textContent =
+        ticket.id + " - " + ticket.asunto + " (" + ticket.estado + ")";
+
+    let conversacion =
+        document.getElementById("ticketConversacion");
+
+    conversacion.innerHTML = "";
+
+    ticket.mensajes.forEach(function(mensaje){
+
+        let p =
+            document.createElement("p");
+
+        p.innerHTML =
+            "<strong>" +
+            escaparHTML(mensaje.autor) +
+            ":</strong> " +
+            escaparHTML(mensaje.texto);
+
+        conversacion.appendChild(p);
+    });
+
+    document.getElementById("ticketRespuesta").disabled =
+        ticket.estado != "abierto";
+}
+
+function responderTicketUsuario(){
+
+    let texto =
+        document.getElementById("ticketRespuesta").value.trim();
+
+    if(ticketActual == "" || texto == ""){
+        return;
+    }
+
+    socket.emit(
+        "responder_ticket_usuario",
+        {
+            ticket_id:ticketActual,
+            mensaje:texto
+        }
+    );
+
+    document.getElementById("ticketRespuesta").value = "";
+}
+
+// =========================================
 // GUARDAR NOMBRE
 // =========================================
 
@@ -2455,6 +2970,10 @@ function guardarNombre(){
     socket.emit(
         "registrar_usuario",
         nombre
+    );
+
+    socket.emit(
+        "listar_mis_tickets"
     );
 }
 
@@ -2717,6 +3236,39 @@ socket.on("limpiar_historial_sala", function(sala){
     }
 });
 
+socket.on("tickets_usuario", function(tickets){
+
+    actualizarMisTickets(
+        tickets
+    );
+});
+
+socket.on("ticket_detalle", function(ticket){
+
+    mostrarTicket(
+        ticket
+    );
+});
+
+socket.on("ticket_actualizado", function(ticket){
+
+    socket.emit(
+        "listar_mis_tickets"
+    );
+
+    if(ticketActual == ticket.id){
+
+        mostrarTicket(
+            ticket
+        );
+    }
+});
+
+socket.on("ticket_error", function(mensaje){
+
+    alert(mensaje);
+});
+
 socket.on("system_message", function(msg){
 
     agregarSistema(
@@ -2940,6 +3492,13 @@ def registrarUsuario(nombre):
     )
 
     emitirUsuarios()
+    emitirTicketsUsuario(nombre)
+
+
+@socket.on("admin_conectar")
+def adminConectar():
+
+    join_room("admins")
 
 
 @socket.on("disconnect")
@@ -3022,6 +3581,153 @@ def crearSala(nombre):
         emitirSalas()
 
     cambiarSala(sala)
+
+
+# =========================================
+# TICKETS SOCKET
+# =========================================
+
+@socket.on("crear_ticket")
+def crearTicket(data):
+
+    if not isinstance(data, dict):
+
+        return
+
+    usuario = usuariosWeb.get(
+        request.sid,
+        ""
+    )
+
+    if not usuario:
+
+        socket.emit(
+            "ticket_error",
+            "Debes ingresar con un alias antes de crear tickets.",
+            to=request.sid
+        )
+
+        return
+
+    asunto = str(data.get("asunto", "")).strip()
+    mensaje = str(data.get("mensaje", "")).strip()
+
+    if not asunto or not mensaje:
+
+        return
+
+    ticket_id = crearTicketId()
+
+    tickets[ticket_id] = {
+        "id": ticket_id,
+        "usuario": usuario,
+        "asunto": asunto[:80],
+        "estado": "abierto",
+        "mensajes": [
+            {
+                "autor": usuario,
+                "texto": mensaje
+            }
+        ]
+    }
+
+    join_room(
+        f"ticket-{ticket_id}"
+    )
+
+    emitirTicketsUsuario(usuario)
+    emitirTicketPrivado(ticket_id)
+
+
+@socket.on("listar_mis_tickets")
+def listarMisTickets():
+
+    usuario = usuariosWeb.get(
+        request.sid,
+        ""
+    )
+
+    socket.emit(
+        "tickets_usuario",
+        obtenerTicketsUsuario(usuario),
+        to=request.sid
+    )
+
+
+@socket.on("abrir_ticket")
+def abrirTicket(ticket_id):
+
+    ticket_id = str(ticket_id).strip()
+    ticket = tickets.get(ticket_id)
+    usuario = usuariosWeb.get(
+        request.sid,
+        ""
+    )
+
+    if not ticket or ticket["usuario"] != usuario:
+
+        socket.emit(
+            "ticket_error",
+            "No puedes abrir ese ticket.",
+            to=request.sid
+        )
+
+        return
+
+    join_room(
+        f"ticket-{ticket_id}"
+    )
+
+    socket.emit(
+        "ticket_detalle",
+        serializarTicket(ticket),
+        to=request.sid
+    )
+
+
+@socket.on("responder_ticket_usuario")
+def responderTicketUsuario(data):
+
+    if not isinstance(data, dict):
+
+        return
+
+    ticket_id = str(data.get("ticket_id", "")).strip()
+    texto = str(data.get("mensaje", "")).strip()
+    ticket = tickets.get(ticket_id)
+    usuario = usuariosWeb.get(
+        request.sid,
+        ""
+    )
+
+    if (
+        not ticket
+        or ticket["usuario"] != usuario
+        or ticket["estado"] != "abierto"
+        or not texto
+    ):
+
+        socket.emit(
+            "ticket_error",
+            "No se pudo responder el ticket.",
+            to=request.sid
+        )
+
+        return
+
+    ticket["mensajes"].append({
+        "autor": usuario,
+        "texto": texto
+    })
+
+    ticket["mensajes"] = ticket["mensajes"][-50:]
+
+    join_room(
+        f"ticket-{ticket_id}"
+    )
+
+    emitirTicketPrivado(ticket_id)
+    emitirTicketsUsuario(usuario)
 
 
 # =========================================
