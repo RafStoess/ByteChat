@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask_socketio import SocketIO, send
 from telegram import Update
 from telegram.ext import (
@@ -92,6 +92,59 @@ botTelegram = None
 # =========================================
 
 usuarios = []
+usuariosWeb = {}
+usuariosTelegram = set()
+
+
+def emitirUsuarios():
+
+    usuarios.clear()
+    vistos = set()
+
+    for nombre in usuariosWeb.values():
+
+        clave = nombre.lower()
+
+        if clave in vistos:
+
+            continue
+
+        vistos.add(clave)
+
+        usuarios.append({
+            "nombre": nombre,
+            "telegram": False
+        })
+
+    for nombre in sorted(usuariosTelegram):
+
+        clave = nombre.lower()
+
+        if clave in vistos:
+
+            continue
+
+        vistos.add(clave)
+
+        usuarios.append({
+            "nombre": nombre,
+            "telegram": True
+        })
+
+    socket.emit(
+        "usuarios",
+        usuarios
+    )
+
+
+def registrarUsuarioTelegram(nombre):
+
+    if not nombre:
+
+        return
+
+    usuariosTelegram.add(nombre)
+    emitirUsuarios()
 
 
 # =========================================
@@ -1138,6 +1191,11 @@ function guardarNombre(){
         true,
         false
     );
+
+    socket.emit(
+        "registrar_usuario",
+        nombre
+    );
 }
 
 // =========================================
@@ -1168,6 +1226,12 @@ function agregarUsuario(
     let inicial =
         usuario.charAt(0).toUpperCase();
 
+    let usuarioSeguro =
+        escaparHTML(usuario);
+
+    let inicialSegura =
+        escaparHTML(inicial);
+
     let estado =
         telegram
         ? "vía Telegram"
@@ -1176,13 +1240,13 @@ function agregarUsuario(
     div.innerHTML =
 
         '<div class="avatar">' +
-            inicial +
+            inicialSegura +
         '</div>' +
 
         '<div class="user-info">' +
 
             '<span class="user-name">' +
-                usuario +
+                usuarioSeguro +
             '</span>' +
 
             '<span class="user-status">' +
@@ -1192,6 +1256,25 @@ function agregarUsuario(
         '</div>';
 
     lista.appendChild(div);
+}
+
+function actualizarUsuarios(usuarios){
+
+    let lista =
+        document.getElementById(
+            "listaUsuarios"
+        );
+
+    lista.innerHTML = "";
+
+    usuarios.forEach(function(usuario){
+
+        agregarUsuario(
+            usuario.nombre,
+            usuario.nombre == nombre && !usuario.telegram,
+            usuario.telegram
+        );
+    });
 }
 
 // =========================================
@@ -1251,6 +1334,20 @@ socket.on("telegram_message", function(msg){
     );
 });
 
+socket.on("usuarios", function(usuarios){
+
+    actualizarUsuarios(
+        usuarios
+    );
+});
+
+socket.on("system_message", function(msg){
+
+    agregarSistema(
+        msg
+    );
+});
+
 // =========================================
 // SISTEMA
 // =========================================
@@ -1268,7 +1365,7 @@ function agregarSistema(texto){
 
     div.innerHTML =
         "<span>📢 Sistema: " +
-        texto +
+        escaparHTML(texto) +
         "</span>";
 
     chat.appendChild(div);
@@ -1365,11 +1462,6 @@ function agregarMensaje(
             'Telegram' +
             '</span>';
 
-        agregarUsuario(
-            usuario,
-            false,
-            true
-        );
     }
 
     div.innerHTML =
@@ -1422,6 +1514,56 @@ document
 </body>
 </html>
 """
+
+
+# =========================================
+# USUARIOS SOCKET
+# =========================================
+
+@socket.on("connect")
+def conectarUsuario():
+
+    emitirUsuarios()
+
+
+@socket.on("registrar_usuario")
+def registrarUsuario(nombre):
+
+    nombre = str(nombre).strip()
+
+    if not nombre:
+
+        return
+
+    usuariosWeb[request.sid] = nombre
+
+    socket.emit(
+        "system_message",
+        f"{nombre} se unio al chat",
+        skip_sid=request.sid
+    )
+
+    emitirUsuarios()
+
+
+@socket.on("disconnect")
+def desconectarUsuario():
+
+    nombre = usuariosWeb.pop(
+        request.sid,
+        None
+    )
+
+    if not nombre:
+
+        return
+
+    socket.emit(
+        "system_message",
+        f"{nombre} salio del chat"
+    )
+
+    emitirUsuarios()
 
 
 # =========================================
@@ -1531,6 +1673,10 @@ async def recibirTelegram(
         update.message
         .from_user
         .first_name
+    )
+
+    registrarUsuarioTelegram(
+        usuario
     )
 
     mensaje = update.message.text
