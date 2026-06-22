@@ -524,6 +524,13 @@ body{
     backdrop-filter:blur(10px);
 }
 
+.mobile-topbar,
+.sidebar-close,
+.sidebar-backdrop,
+.quick-commands{
+    display:none;
+}
+
 /* =========================================
    BRAND
 ========================================= */
@@ -1036,17 +1043,94 @@ body{
         overflow:hidden;
     }
 
+    .mobile-topbar{
+        display:flex;
+        align-items:center;
+        gap:12px;
+        height:56px;
+        padding:10px 14px;
+        flex-shrink:0;
+        border-bottom:1px solid var(--border);
+        background:rgba(15,23,42,.96);
+    }
+
+    .menu-toggle,
+    .sidebar-close{
+        width:40px;
+        height:40px;
+        border:none;
+        border-radius:10px;
+        background:#1e293b;
+        color:white;
+        font-size:22px;
+        cursor:pointer;
+    }
+
+    .mobile-title{
+        display:flex;
+        flex-direction:column;
+        min-width:0;
+    }
+
+    .mobile-title strong{
+        color:white;
+        font-size:19px;
+        line-height:1.1;
+    }
+
+    .mobile-title strong span{
+        color:var(--secondary);
+    }
+
+    .mobile-title span{
+        color:#94a3b8;
+        font-size:12px;
+    }
+
     .sidebar{
 
-        width:100%;
-        height:auto;
-        max-height:38dvh;
+        position:fixed;
+        top:0;
+        bottom:0;
+        left:0;
+        z-index:30;
+        width:min(84vw, 320px);
+        height:100dvh;
+        height:var(--app-height, 100dvh);
+        max-height:none;
         flex-shrink:0;
-        overflow:hidden;
+        overflow-y:auto;
+        transform:translateX(-100%);
+        transition:transform .2s ease;
+        box-shadow:18px 0 40px rgba(0,0,0,.35);
+    }
+
+    .sidebar.open{
+        transform:translateX(0);
+    }
+
+    .sidebar-backdrop{
+        display:none;
+        position:fixed;
+        inset:0;
+        z-index:20;
+        background:rgba(2,6,23,.55);
+    }
+
+    .sidebar-backdrop.open{
+        display:block;
+    }
+
+    .sidebar-close{
+        display:block;
+        position:absolute;
+        top:12px;
+        right:12px;
+        font-size:24px;
     }
 
     .brand{
-        padding:14px;
+        padding:18px 56px 18px 18px;
     }
 
     .login-box{
@@ -1065,7 +1149,8 @@ body{
 
     .users-list{
 
-        max-height:110px;
+        flex:none;
+        max-height:220px;
         padding:10px 12px;
         overflow-y:auto;
     }
@@ -1083,6 +1168,31 @@ body{
     .avatar{
         width:34px;
         height:34px;
+    }
+
+    .quick-commands{
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+        padding:12px;
+        border-top:1px solid var(--border);
+    }
+
+    .quick-commands h3{
+        color:#94a3b8;
+        font-size:12px;
+        text-transform:uppercase;
+        letter-spacing:1px;
+    }
+
+    .quick-command{
+        border:1px solid var(--border);
+        border-radius:10px;
+        padding:10px 12px;
+        background:#1e293b;
+        color:white;
+        text-align:left;
+        cursor:pointer;
     }
 
     .chat-main{
@@ -1144,9 +1254,36 @@ body{
 
 <div class="chat-container">
 
+    <div class="mobile-topbar">
+
+        <button
+            type="button"
+            class="menu-toggle"
+            onclick="abrirMenuMovil()"
+            aria-label="Abrir menu"
+        >
+            ☰
+        </button>
+
+        <div class="mobile-title">
+            <strong>Byte<span>Chat</span></strong>
+            <span>Sala Global</span>
+        </div>
+
+    </div>
+
     <!-- SIDEBAR -->
 
     <aside class="sidebar">
+
+        <button
+            type="button"
+            class="sidebar-close"
+            onclick="cerrarMenuMovil()"
+            aria-label="Cerrar menu"
+        >
+            ×
+        </button>
 
         <div class="brand">
 
@@ -1180,7 +1317,42 @@ body{
 
         </div>
 
+        <div class="quick-commands">
+
+            <h3>Comandos rapidos</h3>
+
+            <button
+                type="button"
+                class="quick-command"
+                onclick="enviarComandoRapido('/ayuda')"
+            >
+                /ayuda
+            </button>
+
+            <button
+                type="button"
+                class="quick-command"
+                onclick="enviarComandoRapido('/ubicacion')"
+            >
+                /ubicacion
+            </button>
+
+            <button
+                type="button"
+                class="quick-command"
+                onclick="enviarComandoRapido('/teambook')"
+            >
+                /teambook
+            </button>
+
+        </div>
+
     </aside>
+
+    <div
+        class="sidebar-backdrop"
+        onclick="cerrarMenuMovil()"
+    ></div>
 
     <!-- CHAT -->
 
@@ -1274,6 +1446,41 @@ if(window.visualViewport){
 }
 
 setAppHeight();
+
+// =========================================
+// MENU MOVIL
+// =========================================
+
+function abrirMenuMovil(){
+
+    document
+        .querySelector(".sidebar")
+        .classList.add("open");
+
+    document
+        .querySelector(".sidebar-backdrop")
+        .classList.add("open");
+}
+
+function cerrarMenuMovil(){
+
+    document
+        .querySelector(".sidebar")
+        .classList.remove("open");
+
+    document
+        .querySelector(".sidebar-backdrop")
+        .classList.remove("open");
+}
+
+function enviarComandoRapido(comando){
+
+    document.getElementById("mensaje").value =
+        comando;
+
+    cerrarMenuMovil();
+    enviar();
+}
 
 // =========================================
 // GUARDAR NOMBRE
