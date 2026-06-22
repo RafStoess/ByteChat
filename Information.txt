@@ -16,3 +16,4 @@ ipconfig → en cmd sacar
 Dirección IPv4. . . . . . . . . . . . . . : 10.63.245.166
 En el navegador del celular
 http://10.63.245.166:5000
+.
