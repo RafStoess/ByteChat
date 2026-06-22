@@ -246,22 +246,24 @@ TEAMBOOK_FILE_PATH = os.path.join(
 
 COMMAND_RESPONSES = {
     "/ayuda": (
-        "\U0001f4cb BYTECHAT - AYUDA\n\n"
-        "Informacion\n"
-        "/info\n"
-        "/inscripcion\n"
-        "/requisitos\n"
-        "/ubicacion\n\n"
-        "Competencia\n"
-        "/reglas\n"
-        "/cronograma\n"
-        "/horarios\n"
-        "/algoritmos\n\n"
+        "\U0001f4cb BYTECHAT - COMANDOS DEL EVENTO\n\n"
+        "Evento\n"
+        "- /inscripcion\n"
+        "- /requisitos\n"
+        "- /horarios\n"
+        "- /ubicacion\n"
+        "- /reglas\n"
+        "- /contacto\n\n"
         "Recursos\n"
-        "/teambook\n\n"
-        "Contacto\n"
-        "/contacto\n\n"
-        "Escribe cualquiera de los comandos para obtener mas informacion."
+        "- /teambook\n\n"
+        "Algoritmos\n"
+        "- /bfs\n"
+        "- /dfs\n"
+        "- /dijkstra\n"
+        "- /dp\n"
+        "- /greedy\n"
+        "- /backtracking\n\n"
+        "Escribe un comando para ver informacion resumida."
     ),
     "/info": (
         "\U0001f3c6 EVENTO DE PROGRAMACION COMPETITIVA 2026\n\n"
@@ -373,71 +375,71 @@ COMMAND_RESPONSES = {
     ),
     "/bfs": (
         "\U0001f50e BFS - Breadth First Search\n\n"
-        "BFS recorre un grafo por niveles utilizando una cola.\n\n"
-        "Uso comun:\n"
+        "Que es:\n"
+        "Recorrido de grafos por niveles usando una cola.\n\n"
+        "Cuando se usa:\n"
         "- Caminos minimos en grafos no ponderados\n"
         "- Busqueda por niveles\n"
         "- Problemas de estados\n\n"
-        "Estructura general:\n"
-        "1. Crear una cola.\n"
-        "2. Marcar el nodo inicial como visitado.\n"
-        "3. Procesar nodos mientras la cola no este vacia.\n"
-        "4. Agregar vecinos no visitados."
+        "Complejidad general:\n"
+        "O(V + E), donde V son vertices y E aristas.\n\n"
+        "Estructura conceptual:\n"
+        "Marcar inicio, procesar una cola y agregar vecinos no visitados."
     ),
     "/dfs": (
         "\U0001f332 DFS - Depth First Search\n\n"
-        "DFS recorre un grafo profundizando por cada rama antes de retroceder.\n\n"
-        "Uso comun:\n"
+        "Que es:\n"
+        "Recorrido de grafos que profundiza por una rama antes de retroceder.\n\n"
+        "Cuando se usa:\n"
         "- Componentes conectados\n"
         "- Deteccion de ciclos\n"
         "- Backtracking\n"
         "- Ordenamiento topologico\n\n"
-        "Estructura general:\n"
-        "1. Marcar el nodo actual.\n"
-        "2. Recorrer sus vecinos.\n"
-        "3. Llamar recursivamente a los no visitados."
+        "Complejidad general:\n"
+        "O(V + E), donde V son vertices y E aristas.\n\n"
+        "Estructura conceptual:\n"
+        "Marcar el nodo actual y visitar recursivamente vecinos no visitados."
     ),
     "/dijkstra": (
         "\U0001f6e3\ufe0f DIJKSTRA\n\n"
-        "Dijkstra encuentra caminos minimos en grafos con pesos no negativos.\n\n"
-        "Uso comun:\n"
+        "Que es:\n"
+        "Algoritmo para caminos minimos con pesos no negativos.\n\n"
+        "Cuando se usa:\n"
         "- Rutas minimas\n"
         "- Grafos ponderados\n"
         "- Optimizacion de costos\n\n"
-        "Estructura general:\n"
-        "1. Inicializar distancias en infinito.\n"
-        "2. Usar una cola de prioridad.\n"
-        "3. Relajar aristas.\n"
-        "4. Actualizar distancias minimas."
+        "Complejidad general:\n"
+        "O((V + E) log V) usando cola de prioridad.\n\n"
+        "Estructura conceptual:\n"
+        "Mantener distancias minimas, extraer el nodo mas cercano y relajar aristas."
     ),
     "/greedy": (
         "\u26a1 GREEDY\n\n"
-        "Greedy toma la mejor decision local en cada paso esperando llegar "
-        "a una solucion optima.\n\n"
-        "Uso comun:\n"
+        "Que es:\n"
+        "Tecnica que toma una decision local conveniente en cada paso.\n\n"
+        "Cuando se usa:\n"
         "- Intervalos\n"
         "- Seleccion de actividades\n"
         "- Huffman\n"
         "- Problemas de ordenamiento\n\n"
-        "Estructura general:\n"
-        "1. Ordenar o priorizar elementos.\n"
-        "2. Elegir la mejor opcion actual.\n"
-        "3. Verificar si la eleccion mantiene la solucion valida."
+        "Complejidad general:\n"
+        "Depende del problema; suele estar dominada por ordenar: O(n log n).\n\n"
+        "Estructura conceptual:\n"
+        "Ordenar o priorizar, elegir una opcion valida y avanzar sin recalcular todo."
     ),
     "/dp": (
         "\U0001f9e9 PROGRAMACION DINAMICA\n\n"
-        "La Programacion Dinamica resuelve problemas dividiendolos en "
-        "subproblemas y reutilizando resultados.\n\n"
-        "Uso comun:\n"
+        "Que es:\n"
+        "Tecnica que divide un problema en subproblemas y reutiliza resultados.\n\n"
+        "Cuando se usa:\n"
         "- Mochila\n"
         "- Caminos\n"
         "- Subsecuencias\n"
         "- Optimizacion\n\n"
-        "Estructura general:\n"
-        "1. Definir estado.\n"
-        "2. Definir transicion.\n"
-        "3. Definir casos base.\n"
-        "4. Calcular la respuesta."
+        "Complejidad general:\n"
+        "Depende del numero de estados por transiciones.\n\n"
+        "Estructura conceptual:\n"
+        "Definir estado, transicion, casos base y orden de calculo."
     ),
     "/unionfind": (
         "\U0001f517 UNION FIND\n\n"
@@ -467,20 +469,26 @@ COMMAND_RESPONSES = {
     ),
     "/backtracking": (
         "\U0001f9ed BACKTRACKING\n\n"
-        "Backtracking explora soluciones posibles y retrocede cuando una "
-        "opcion ya no puede llevar a una respuesta valida.\n\n"
-        "Uso comun:\n"
+        "Que es:\n"
+        "Tecnica de busqueda que prueba opciones y retrocede si una rama no sirve.\n\n"
+        "Cuando se usa:\n"
         "- Permutaciones\n"
         "- Combinaciones\n"
         "- Sudoku\n"
         "- Busqueda exhaustiva con poda\n\n"
-        "Estructura general:\n"
-        "1. Elegir una opcion.\n"
-        "2. Avanzar recursivamente.\n"
-        "3. Deshacer la eleccion.\n"
-        "4. Podar estados invalidos."
+        "Complejidad general:\n"
+        "Usualmente exponencial; mejora con podas y restricciones.\n\n"
+        "Estructura conceptual:\n"
+        "Elegir opcion, avanzar, validar, retroceder y podar ramas invalidas."
     )
 }
+
+
+UNKNOWN_COMMAND_RESPONSE = (
+    "\u2753 COMANDO NO RECONOCIDO\n\n"
+    "Ese comando no existe en ByteChat.\n"
+    "Usa /ayuda para ver la lista de comandos disponibles."
+)
 
 
 def get_teambook_response():
@@ -526,6 +534,15 @@ def get_command_response(message):
     response = COMMAND_RESPONSES.get(command)
 
     if not response:
+
+        if command.startswith("/"):
+
+            return {
+                "command": command,
+                "text": UNKNOWN_COMMAND_RESPONSE,
+                "document_path": None,
+                "document_url": None
+            }
 
         return None
 
