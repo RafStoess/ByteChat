@@ -919,6 +919,321 @@ def renderAdminLogin(error=""):
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ByteChat Admin</title>
 <style>
+:root{{
+    --bg:#071225;
+    --card:#0f1b2f;
+    --border:rgba(148,163,184,.22);
+    --cyan:#06b6d4;
+    --cyan-soft:#22d3ee;
+    --text:#f8fafc;
+    --muted:#a8b3c7;
+    --danger:#fca5a5;
+}}
+*{{
+    box-sizing:border-box;
+}}
+body{{
+    margin:0;
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    padding:28px 16px;
+    background:
+        radial-gradient(circle at 20% 18%, rgba(34,211,238,.16), transparent 32%),
+        radial-gradient(circle at 82% 78%, rgba(59,130,246,.12), transparent 34%),
+        linear-gradient(135deg, #071225 0%, #0b1628 48%, #030914 100%);
+    color:var(--text);
+    font-family:Segoe UI, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}}
+.admin-card{{
+    width:min(100%, 560px);
+    padding:46px 44px 34px;
+    border:1px solid var(--border);
+    border-radius:24px;
+    background:
+        linear-gradient(180deg, rgba(15,27,47,.9), rgba(8,15,30,.92));
+    box-shadow:
+        0 28px 80px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.04);
+    backdrop-filter:blur(18px);
+}}
+.admin-icon{{
+    width:72px;
+    height:72px;
+    margin:0 auto 26px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--cyan-soft);
+}}
+.admin-icon svg,
+.field-icon svg,
+.toggle-password svg,
+.footer-icon svg{{
+    width:100%;
+    height:100%;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    fill:none;
+}}
+.admin-title{{
+    margin:0;
+    text-align:center;
+    font-size:40px;
+    line-height:1.1;
+    letter-spacing:-.6px;
+    font-weight:850;
+}}
+.admin-title span{{
+    color:var(--cyan-soft);
+}}
+.admin-subtitle{{
+    max-width:430px;
+    margin:18px auto 28px;
+    text-align:center;
+    color:#cbd5e1;
+    font-size:16px;
+    line-height:1.55;
+}}
+.admin-divider{{
+    width:70px;
+    height:2px;
+    margin:0 auto 34px;
+    border-radius:999px;
+    background:linear-gradient(90deg, transparent, var(--cyan-soft), transparent);
+}}
+.error{{
+    margin:0 0 22px;
+    padding:13px 14px;
+    border:1px solid rgba(248,113,113,.28);
+    border-radius:13px;
+    background:rgba(127,29,29,.22);
+    color:var(--danger);
+    text-align:center;
+    font-weight:650;
+}}
+.field{{
+    margin-bottom:22px;
+}}
+label{{
+    display:block;
+    margin:0 0 9px;
+    color:#f1f5f9;
+    font-size:15px;
+    font-weight:750;
+}}
+.input-wrap{{
+    position:relative;
+    display:flex;
+    align-items:center;
+}}
+.field-icon{{
+    position:absolute;
+    left:18px;
+    width:22px;
+    height:22px;
+    color:var(--cyan-soft);
+    pointer-events:none;
+}}
+input{{
+    width:100%;
+    min-height:58px;
+    padding:0 52px 0 56px;
+    border:1px solid rgba(148,163,184,.26);
+    border-radius:13px;
+    background:rgba(15,23,42,.62);
+    color:white;
+    outline:none;
+    font-size:16px;
+    transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}}
+input::placeholder{{
+    color:#7f8ba3;
+}}
+input:focus{{
+    border-color:rgba(34,211,238,.72);
+    background:rgba(15,23,42,.82);
+    box-shadow:0 0 0 4px rgba(34,211,238,.1);
+}}
+.toggle-password{{
+    position:absolute;
+    right:16px;
+    width:24px;
+    height:24px;
+    padding:0;
+    border:none;
+    background:transparent;
+    color:#94a3b8;
+    cursor:pointer;
+}}
+.toggle-password:hover{{
+    color:white;
+}}
+.submit-btn{{
+    width:100%;
+    margin-top:10px;
+    padding:17px 18px;
+    border:none;
+    border-radius:13px;
+    background:linear-gradient(135deg, #22d3ee, #06b6d4);
+    color:white;
+    font-size:18px;
+    font-weight:850;
+    cursor:pointer;
+    box-shadow:0 18px 38px rgba(6,182,212,.24);
+    transition:transform .18s ease, box-shadow .18s ease;
+}}
+.submit-btn:hover{{
+    transform:translateY(-1px);
+    box-shadow:0 22px 46px rgba(6,182,212,.3);
+}}
+.admin-footer{{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin-top:30px;
+    color:var(--muted);
+    font-size:15px;
+}}
+.footer-icon{{
+    width:22px;
+    height:22px;
+    color:#94a3b8;
+}}
+@media(max-width:520px){{
+    body{{
+        padding:18px 12px;
+    }}
+    .admin-card{{
+        padding:34px 22px 28px;
+        border-radius:20px;
+    }}
+    .admin-icon{{
+        width:60px;
+        height:60px;
+        margin-bottom:22px;
+    }}
+    .admin-title{{
+        font-size:31px;
+    }}
+    .admin-subtitle{{
+        font-size:15px;
+        margin-bottom:24px;
+    }}
+    .admin-divider{{
+        margin-bottom:28px;
+    }}
+    input{{
+        min-height:56px;
+        font-size:15px;
+    }}
+    .submit-btn{{
+        padding:16px;
+        font-size:17px;
+    }}
+}}
+</style>
+</head>
+<body>
+<form class="admin-card" method="post" action="/admin">
+    <div class="admin-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <rect x="9" y="11" width="6" height="5" rx="1"></rect>
+            <path d="M10 11V9a2 2 0 0 1 4 0v2"></path>
+        </svg>
+    </div>
+    <h1 class="admin-title">ByteChat <span>Admin</span></h1>
+    <p class="admin-subtitle">
+        Accede al panel de administración de ByteChat para gestionar canales, soporte y anuncios.
+    </p>
+    <div class="admin-divider" aria-hidden="true"></div>
+    {error_html}
+    <div class="field">
+        <label for="usuario">Usuario</label>
+        <div class="input-wrap">
+            <span class="field-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 21a8 8 0 0 0-16 0"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </span>
+            <input
+                id="usuario"
+                name="usuario"
+                placeholder="Ingresa tu usuario"
+                autocomplete="username"
+                required
+            >
+        </div>
+    </div>
+    <div class="field">
+        <label for="password">Contraseña</label>
+        <div class="input-wrap">
+            <span class="field-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <rect x="4" y="10" width="16" height="10" rx="2"></rect>
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                </svg>
+            </span>
+            <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Ingresa tu contraseña"
+                autocomplete="current-password"
+                required
+            >
+            <button
+                class="toggle-password"
+                type="button"
+                aria-label="Mostrar u ocultar contraseña"
+                onclick="togglePasswordVisibility()"
+            >
+                <svg viewBox="0 0 24 24">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <button class="submit-btn" type="submit">Ingresar</button>
+    <div class="admin-footer">
+        <span class="footer-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 22s7-3.5 7-9V6l-7-3-7 3v7c0 5.5 7 9 7 9z"></path>
+                <path d="M9.5 12l1.7 1.7L15 10"></path>
+            </svg>
+        </span>
+        <span>Solo personal autorizado</span>
+    </div>
+</form>
+<script>
+function togglePasswordVisibility(){{
+    const password =
+        document.getElementById("password");
+
+    password.type =
+        password.type == "password"
+        ? "text"
+        : "password";
+}}
+</script>
+</body>
+</html>
+"""
+
+    return f"""
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ByteChat Admin</title>
+<style>
 body{{
     margin:0;
     min-height:100vh;
