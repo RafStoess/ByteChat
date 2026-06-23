@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, session, url_for
+from flask import Flask, request, redirect, session, url_for, has_request_context
 from flask_socketio import SocketIO, send, join_room, leave_room
 from telegram import Update
 from telegram.ext import (
@@ -589,6 +589,18 @@ TEAMBOOK_FILE_PATH = os.path.join(
 )
 
 
+def get_teambook_url():
+
+    if has_request_context():
+
+        return (
+            request.host_url.rstrip("/")
+            + TEAMBOOK_WEB_PATH
+        )
+
+    return TEAMBOOK_WEB_PATH
+
+
 COMMAND_RESPONSES = {
     "/ayuda": (
         "\U0001f4cb BYTECHAT - COMANDOS DEL EVENTO\n\n"
@@ -838,6 +850,8 @@ UNKNOWN_COMMAND_RESPONSE = (
 
 def get_teambook_response():
 
+    pdf_url = get_teambook_url()
+
     if not os.path.exists(TEAMBOOK_FILE_PATH):
 
         return {
@@ -847,7 +861,7 @@ def get_teambook_response():
                 "Intenta nuevamente mas tarde."
             ),
             "document_path": None,
-            "document_url": TEAMBOOK_WEB_PATH
+            "document_url": pdf_url
         }
 
     return {
@@ -861,10 +875,10 @@ def get_teambook_response():
             "- Matematica Computacional\n"
             "- Tecnicas de Programacion Competitiva\n\n"
             "Descargar TeamBook:\n"
-            f"{TEAMBOOK_WEB_PATH}"
+            f"{pdf_url}"
         ),
         "document_path": TEAMBOOK_FILE_PATH,
-        "document_url": TEAMBOOK_WEB_PATH
+        "document_url": pdf_url
     }
 
 
@@ -6234,20 +6248,28 @@ function formatearTextoMensaje(texto){
     let seguro =
         escaparHTML(texto);
 
-    seguro = seguro.replace(
-        /(https?:\/\/[^\s<]+|\/static\/docs\/[^\s<]+)/g,
-        function(url){
+    return seguro
+        .split(/(https?:\/\/[^\s<]+)/g)
+        .map(function(fragmento){
 
-            return '<a href="' + url + '" target="_blank" rel="noopener">' +
-                url +
-            '</a>';
-        }
-    );
+            if(/^https?:\/\//i.test(fragmento)){
 
-    return seguro.replace(
+                let clase =
+                    fragmento.indexOf("/static/docs/teambook.pdf") >= 0
+                    ? ' class="pdf-link"'
+                    : "";
+
+                return '<a href="' + fragmento + '" target="_blank" rel="noopener noreferrer"' + clase + '>' +
+                    fragmento +
+                '</a>';
+            }
+
+            return fragmento.replace(
         /(\/(?:ayuda|ubicacion|teambook|reglas|cronograma|algoritmos|contacto|info|inscripcion|requisitos))/gi,
         '<span class="cmd-chip">$1</span>'
-    );
+            );
+        })
+        .join("");
 }
 
 function colorUsuario(usuario){
