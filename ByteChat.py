@@ -2265,6 +2265,463 @@ body{
 }
 
 /* =========================================
+   SIDEBAR PREMIUM
+========================================= */
+
+.sidebar{
+    width:340px;
+    padding:18px 16px 22px;
+    gap:16px;
+    background:
+        radial-gradient(circle at 18% 0%, rgba(34,211,238,.1), transparent 34%),
+        linear-gradient(180deg, rgba(15,23,42,.98), rgba(8,15,30,.98));
+    box-shadow:12px 0 42px rgba(0,0,0,.28);
+}
+
+.brand{
+    padding:10px 8px 6px;
+    border-bottom:none;
+    text-align:left;
+}
+
+.brand h1{
+    font-size:38px;
+    line-height:1;
+    letter-spacing:-.8px;
+}
+
+.brand small{
+    display:block;
+    margin-top:8px;
+    color:#94a3b8;
+    font-size:15px;
+    letter-spacing:.4px;
+}
+
+.login-box{
+    padding:0;
+    border-bottom:none;
+    gap:14px;
+}
+
+.profile-card{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:16px;
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:18px;
+    background:rgba(15,23,42,.58);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.profile-avatar{
+    position:relative;
+    width:58px;
+    height:58px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    color:white;
+    font-size:24px;
+    font-weight:850;
+    background:linear-gradient(135deg, var(--primary), var(--secondary));
+    box-shadow:0 10px 26px rgba(6,182,212,.22);
+}
+
+.profile-avatar::after,
+.avatar::after{
+    content:"";
+    position:absolute;
+    right:0;
+    bottom:2px;
+    width:13px;
+    height:13px;
+    border-radius:50%;
+    background:#22c55e;
+    border:3px solid #0f172a;
+}
+
+.profile-copy{
+    min-width:0;
+    flex:1;
+}
+
+.login-box input{
+    width:100%;
+    padding:0;
+    border:none;
+    border-radius:0;
+    background:transparent;
+    color:white;
+    font-size:15px;
+    font-weight:800;
+}
+
+.login-box input:disabled{
+    opacity:1;
+}
+
+.profile-status{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-top:6px;
+    color:#22c55e;
+    font-size:13px;
+    font-weight:700;
+}
+
+.profile-role{
+    display:inline-flex;
+    margin-top:8px;
+    padding:4px 9px;
+    border-radius:999px;
+    background:rgba(30,41,59,.9);
+    color:#cbd5e1;
+    font-size:12px;
+}
+
+.btn-primary{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:15px 18px;
+    border-radius:16px;
+    box-shadow:0 16px 30px rgba(6,182,212,.22);
+    transition:transform .25s ease, box-shadow .25s ease, filter .25s ease;
+}
+
+.btn-primary:hover{
+    transform:translateY(-2px);
+    filter:saturate(1.08);
+    box-shadow:0 20px 38px rgba(6,182,212,.3);
+}
+
+.btn-icon,
+.btn-arrow{
+    width:22px;
+    height:22px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.btn-icon svg,
+.btn-arrow svg,
+.btn-icon-line svg,
+.btn-arrow-line svg,
+.room-icon svg,
+.section-icon svg,
+.quick-title-icon svg{
+    width:100%;
+    height:100%;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    fill:none;
+}
+
+.btn-primary > .btn-icon,
+.btn-primary > .btn-arrow{
+    display:none;
+}
+
+.btn-icon-line,
+.btn-arrow-line{
+    width:22px;
+    height:22px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.sidebar-section{
+    border-bottom:none;
+}
+
+.section-toggle{
+    padding:0 4px 10px;
+    color:#a8b3c7;
+    font-size:14px;
+}
+
+.section-title{
+    gap:10px;
+}
+
+.section-icon{
+    width:22px;
+    height:22px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--secondary);
+}
+
+.section-arrow{
+    width:auto;
+    color:var(--secondary);
+}
+
+.section-content{
+    padding:0;
+}
+
+.rooms-list{
+    max-height:260px;
+    gap:9px;
+    margin-bottom:14px;
+}
+
+.room-item{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    min-height:48px;
+    padding:12px 13px;
+    border:1px solid rgba(148,163,184,.16);
+    border-radius:14px;
+    background:rgba(15,23,42,.52);
+    color:#f8fafc;
+    font-weight:750;
+    transition:background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.room-item:hover{
+    border-color:rgba(34,211,238,.4);
+    background:rgba(30,41,59,.62);
+    transform:translateY(-1px);
+}
+
+.room-item.active{
+    border-color:rgba(34,211,238,.8);
+    background:rgba(8,47,73,.45);
+    box-shadow:inset 4px 0 0 var(--secondary);
+}
+
+.room-icon{
+    width:24px;
+    height:24px;
+    color:var(--secondary);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    flex-shrink:0;
+}
+
+.room-item:not(.active) .room-icon{
+    color:#9fb0c8;
+}
+
+.room-item:hover .room-icon,
+.room-item.active .room-icon{
+    color:var(--secondary);
+}
+
+.room-name{
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.room-badge{
+    padding:3px 8px;
+    border-radius:8px;
+    background:linear-gradient(135deg, #4f46e5, #7c3aed);
+    color:white;
+    font-size:11px;
+    font-weight:800;
+}
+
+.room-create{
+    gap:9px;
+}
+
+.room-create input{
+    min-height:48px;
+    padding:0 14px;
+    border:1px solid rgba(148,163,184,.16);
+    border-radius:14px;
+    background:rgba(15,23,42,.52);
+}
+
+.room-create button{
+    min-width:48px;
+    border-radius:14px;
+    background:linear-gradient(135deg, #06b6d4, #22d3ee);
+    font-size:22px;
+    box-shadow:0 12px 24px rgba(6,182,212,.22);
+    transition:transform .2s ease, box-shadow .2s ease;
+}
+
+.room-create button:hover{
+    transform:translateY(-1px);
+    box-shadow:0 16px 30px rgba(6,182,212,.3);
+}
+
+.rooms-panel .quick-commands{
+    display:flex;
+    flex-direction:row;
+    flex-wrap:wrap;
+    gap:9px;
+    margin-top:18px;
+    padding-top:18px;
+    border-top:1px solid rgba(148,163,184,.14);
+}
+
+.quick-commands h3{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:0 0 2px;
+    color:#a8b3c7;
+    font-size:14px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.quick-commands h3::before{
+    content:"⚡";
+    color:var(--secondary);
+}
+
+.quick-command{
+    flex:1 1 92px;
+    min-width:0;
+    border:1px solid rgba(148,163,184,.16);
+    border-radius:12px;
+    padding:10px 11px;
+    background:rgba(15,23,42,.5);
+    color:#22d3ee;
+    text-align:center;
+    font-weight:750;
+    transition:background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.quick-command:hover{
+    border-color:rgba(34,211,238,.5);
+    background:rgba(8,47,73,.42);
+    transform:translateY(-1px);
+}
+
+.quick-commands h3::before{
+    content:none;
+}
+
+.quick-title-icon{
+    width:21px;
+    height:21px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--secondary);
+}
+
+.users-list .section-toggle{
+    margin-top:2px;
+}
+
+#listaUsuarios{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+    max-height:260px;
+    overflow-y:auto;
+    padding-right:4px;
+}
+
+.user-item{
+    position:relative;
+    margin-bottom:0;
+    padding:12px;
+    border:1px solid rgba(148,163,184,.14);
+    border-radius:14px;
+    background:rgba(15,23,42,.5);
+}
+
+.user-item:hover,
+.user-item.active{
+    background:rgba(30,41,59,.62);
+}
+
+.avatar{
+    position:relative;
+    width:44px;
+    height:44px;
+    flex-shrink:0;
+    box-shadow:0 8px 20px rgba(6,182,212,.18);
+}
+
+.user-info{
+    min-width:0;
+}
+
+.user-name{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.user-status{
+    color:#cbd5e1;
+}
+
+.user-menu-dots{
+    margin-left:auto;
+    color:#64748b;
+    font-size:20px;
+    line-height:1;
+}
+
+.sidebar-stats{
+    margin-top:auto;
+    padding:16px;
+    border:1px solid rgba(148,163,184,.16);
+    border-radius:16px;
+    background:rgba(15,23,42,.5);
+}
+
+.sidebar-stats-title{
+    margin-bottom:14px;
+    color:#a8b3c7;
+    font-size:13px;
+    font-weight:850;
+    letter-spacing:1px;
+    text-transform:uppercase;
+}
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+}
+
+.stat-item{
+    text-align:center;
+    color:#cbd5e1;
+    font-size:11px;
+}
+
+.stat-item strong{
+    display:block;
+    color:white;
+    font-size:20px;
+    margin-bottom:3px;
+}
+
+/* =========================================
    USERS
 ========================================= */
 
@@ -2368,6 +2825,50 @@ body{
     color:var(--accent);
 
     font-size:12px;
+}
+
+.sidebar .user-item{
+    position:relative;
+    margin-bottom:0;
+    padding:12px;
+    border:1px solid rgba(148,163,184,.14);
+    border-radius:14px;
+    background:rgba(15,23,42,.5);
+}
+
+.sidebar .user-item:hover,
+.sidebar .user-item.active{
+    background:rgba(30,41,59,.62);
+}
+
+.sidebar .avatar{
+    position:relative;
+    width:44px;
+    height:44px;
+    flex-shrink:0;
+    box-shadow:0 8px 20px rgba(6,182,212,.18);
+}
+
+.sidebar .user-info{
+    min-width:0;
+}
+
+.sidebar .user-name{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-weight:800;
+}
+
+.sidebar .user-status{
+    color:#cbd5e1;
+}
+
+.user-menu-dots{
+    margin-left:auto;
+    color:#64748b;
+    font-size:20px;
+    line-height:1;
 }
 
 /* =========================================
@@ -3154,7 +3655,7 @@ body{
         bottom:0;
         left:0;
         z-index:90;
-        width:min(84vw, 320px);
+        width:min(92vw, 340px);
         height:100dvh;
         height:var(--app-height, 100dvh);
         max-height:100dvh;
@@ -3447,23 +3948,44 @@ body{
         <div class="brand">
 
             <h1>Byte<span>Chat</span></h1>
+            <small>Arena UDBOL 2026</small>
 
         </div>
 
         <div class="login-box">
 
-            <input
-                type="text"
-                id="nombre"
-                placeholder="Tu alias competitivo..."
-            >
+            <div class="profile-card">
+                <div class="profile-avatar" id="perfilAvatar">?</div>
+                <div class="profile-copy">
+                    <input
+                        type="text"
+                        id="nombre"
+                        placeholder="Tu alias competitivo..."
+                    >
+                    <div class="profile-status">● En línea</div>
+                    <div class="profile-role">Competidor</div>
+                </div>
+            </div>
 
             <button
                 id="btn-entrar"
                 class="btn-primary"
                 onclick="guardarNombre()"
             >
-                Entrar al Chat
+                <span class="btn-icon">◌</span>
+                <span class="btn-icon-line" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
+                    </svg>
+                </span>
+                <span>Entrar al Chat</span>
+                <span class="btn-arrow-line" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </span>
+                <span class="btn-arrow">→</span>
             </button>
 
         </div>
@@ -3503,7 +4025,14 @@ body{
 
                 <div class="quick-commands">
 
-                    <h3>Comandos rapidos</h3>
+                    <h3>
+                        <span class="quick-title-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <polygon points="13 2 4 14 12 14 11 22 20 10 12 10 13 2"></polygon>
+                            </svg>
+                        </span>
+                        Comandos rapidos
+                    </h3>
 
                     <button
                         type="button"
@@ -3619,7 +4148,15 @@ body{
             >
                 <span class="section-title">
                     <span class="section-arrow">▼</span>
-                    Conectados
+                    <span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17 21a5 5 0 0 0-10 0"></path>
+                            <circle cx="12" cy="8" r="4"></circle>
+                            <path d="M22 21a4 4 0 0 0-4-4"></path>
+                            <path d="M16 4a4 4 0 0 1 0 8"></path>
+                        </svg>
+                    </span>
+                    <span id="conectadosTitulo">Conectados (0)</span>
                 </span>
             </button>
 
@@ -3627,6 +4164,24 @@ body{
                 <div id="listaUsuarios"></div>
             </div>
 
+        </div>
+
+        <div class="sidebar-stats">
+            <div class="sidebar-stats-title">Estadísticas</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <strong id="statsUsuarios">0</strong>
+                    Usuarios
+                </div>
+                <div class="stat-item">
+                    <strong id="statsCanales">4</strong>
+                    Canales
+                </div>
+                <div class="stat-item">
+                    <strong id="statsTickets">0</strong>
+                    Tickets
+                </div>
+            </div>
         </div>
 
     </aside>
@@ -4557,6 +5112,7 @@ function actualizarMensajeFijado(){
 function actualizarSalas(salas){
 
     salasDisponibles = salas;
+    actualizarEstadisticasSidebar();
 
     let lista =
         document.getElementById("listaSalas");
@@ -4575,8 +5131,19 @@ function actualizarSalas(salas){
             boton.classList.add("active");
         }
 
-        boton.textContent =
-            nombreSalaLegible(sala);
+        let badgeIA =
+            sala == "ia"
+            ? '<span class="room-badge">Nuevo</span>'
+            : "";
+
+        boton.innerHTML =
+            '<span class="room-icon">' +
+                iconoSala(sala) +
+            '</span>' +
+            '<span class="room-name">' +
+                escaparHTML(nombreSalaLegible(sala)) +
+            '</span>' +
+            badgeIA;
 
         boton.onclick = function(){
             cambiarSala(sala);
@@ -4584,6 +5151,53 @@ function actualizarSalas(salas){
 
         lista.appendChild(boton);
     });
+}
+
+function iconoSala(sala){
+
+    let iconos =
+        {
+            general:
+                '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+                    '<line x1="9" y1="3" x2="7" y2="21"></line>' +
+                    '<line x1="17" y1="3" x2="15" y2="21"></line>' +
+                    '<line x1="4" y1="8" x2="20" y2="8"></line>' +
+                    '<line x1="3" y1="16" x2="19" y2="16"></line>' +
+                '</svg>',
+            anuncios:
+                '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+                    '<path d="M3 11v2a2 2 0 0 0 2 2h3l7 4V5L8 9H5a2 2 0 0 0-2 2z"></path>' +
+                    '<path d="M19 9a4 4 0 0 1 0 6"></path>' +
+                    '<path d="M8 15l1 5"></path>' +
+                '</svg>',
+            soporte:
+                '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+                    '<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4V7z"></path>' +
+                    '<line x1="9" y1="9" x2="15" y2="15"></line>' +
+                    '<line x1="15" y1="9" x2="9" y2="15"></line>' +
+                '</svg>',
+            ia:
+                '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+                    '<rect x="6" y="8" width="12" height="10" rx="3"></rect>' +
+                    '<path d="M12 8V4"></path>' +
+                    '<circle cx="9.5" cy="13" r="1"></circle>' +
+                    '<circle cx="14.5" cy="13" r="1"></circle>' +
+                    '<path d="M9 18v2"></path>' +
+                    '<path d="M15 18v2"></path>' +
+                    '<path d="M4 12h2"></path>' +
+                    '<path d="M18 12h2"></path>' +
+                '</svg>'
+        };
+
+    if(iconos[sala]){
+        return iconos[sala];
+    }
+
+    if(sala == "general"){
+        return "#";
+    }
+
+    return "#";
 }
 
 function cambiarSala(sala){
@@ -4865,6 +5479,14 @@ function guardarNombre(){
     nombre = input.value.trim();
     input.value = nombre;
 
+    let perfilAvatar =
+        document.getElementById("perfilAvatar");
+
+    if(perfilAvatar){
+        perfilAvatar.textContent =
+            nombre.charAt(0).toUpperCase();
+    }
+
     input.disabled = true;
 
     document.getElementById(
@@ -4943,10 +5565,12 @@ function agregarUsuario(
             '</span>' +
 
             '<span class="user-status">' +
-                estado +
+                "Competidor" +
             '</span>' +
 
-        '</div>';
+        '</div>' +
+
+        '<span class="user-menu-dots">⋮</span>';
 
     lista.appendChild(div);
 }
@@ -4968,6 +5592,52 @@ function actualizarUsuarios(usuarios){
             usuario.telegram
         );
     });
+
+    actualizarEstadisticasSidebar();
+}
+
+function actualizarEstadisticasSidebar(){
+
+    let usuarios =
+        document.querySelectorAll("#listaUsuarios .user-item").length;
+
+    let canales =
+        salasDisponibles.length;
+
+    let tickets =
+        ticketActual ? 1 : 0;
+
+    let tituloConectados =
+        document.getElementById("conectadosTitulo");
+
+    let statsUsuarios =
+        document.getElementById("statsUsuarios");
+
+    let statsCanales =
+        document.getElementById("statsCanales");
+
+    let statsTickets =
+        document.getElementById("statsTickets");
+
+    if(tituloConectados){
+        tituloConectados.textContent =
+            "Conectados (" + usuarios + ")";
+    }
+
+    if(statsUsuarios){
+        statsUsuarios.textContent =
+            String(usuarios);
+    }
+
+    if(statsCanales){
+        statsCanales.textContent =
+            String(canales);
+    }
+
+    if(statsTickets){
+        statsTickets.textContent =
+            String(tickets);
+    }
 }
 
 // =========================================
