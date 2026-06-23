@@ -3905,6 +3905,291 @@ body{
     }
 }
 
+/* =========================================
+   MESSAGES PREMIUM
+========================================= */
+
+.chat-messages{
+    background:
+        radial-gradient(circle at 12% 0%, rgba(34,211,238,.06), transparent 28%),
+        radial-gradient(circle at 85% 80%, rgba(79,70,229,.06), transparent 32%);
+}
+
+.chat-messages .message{
+    width:fit-content;
+    max-width:60%;
+    display:grid;
+    grid-template-columns:44px minmax(0, 1fr);
+    column-gap:12px;
+    align-items:end;
+}
+
+.message.msg-sent{
+    align-self:flex-end;
+    grid-template-columns:minmax(0, 1fr) 38px;
+    max-width:50%;
+}
+
+.message-avatar{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:850;
+    flex-shrink:0;
+    box-shadow:0 12px 28px rgba(0,0,0,.28);
+}
+
+.message-avatar svg{
+    width:23px;
+    height:23px;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    fill:none;
+}
+
+.message-content{
+    min-width:0;
+}
+
+.msg-sent .message-content{
+    grid-column:1;
+    grid-row:1;
+}
+
+.msg-sent .message-avatar{
+    grid-column:2;
+    grid-row:1;
+    width:38px;
+    height:38px;
+}
+
+.msg-meta{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:0 0 7px;
+    color:#94a3b8;
+}
+
+.msg-sent .msg-meta{
+    justify-content:flex-end;
+}
+
+.msg-author{
+    font-size:13px;
+    font-weight:850;
+}
+
+.msg-time{
+    margin:0;
+    font-size:12px;
+    color:#94a3b8;
+    opacity:1;
+}
+
+.msg-bubble{
+    padding:13px 16px;
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:18px;
+    border-top-left-radius:7px;
+    background:linear-gradient(135deg, rgba(30,41,59,.92), rgba(15,23,42,.92));
+    box-shadow:0 14px 34px rgba(0,0,0,.18);
+}
+
+.msg-sent .msg-bubble{
+    border-top-left-radius:18px;
+    border-top-right-radius:7px;
+    border-color:rgba(34,211,238,.44);
+    background:linear-gradient(135deg, rgba(37,99,235,.95), rgba(6,182,212,.9));
+}
+
+.msg-bubble p{
+    color:white;
+    font-size:15px;
+    line-height:1.5;
+    white-space:pre-wrap;
+}
+
+.msg-bubble a{
+    color:#7dd3fc;
+    font-weight:800;
+}
+
+.message-badge{
+    padding:2px 7px;
+    border-radius:7px;
+    background:rgba(34,211,238,.18);
+    color:#67e8f9;
+    font-size:10px;
+    font-weight:850;
+    letter-spacing:.4px;
+}
+
+.cmd-chip{
+    display:inline-flex;
+    align-items:center;
+    padding:1px 7px;
+    border-radius:7px;
+    background:rgba(34,211,238,.12);
+    color:#22d3ee;
+    font-weight:850;
+}
+
+.user-color-1 .message-avatar{
+    background:linear-gradient(135deg, #2563eb, #06b6d4);
+}
+
+.user-color-1 .msg-author{
+    color:#22d3ee;
+}
+
+.user-color-1 .msg-bubble{
+    border-color:rgba(34,211,238,.42);
+    background:linear-gradient(135deg, rgba(14,116,144,.28), rgba(15,23,42,.92));
+}
+
+.user-color-2 .message-avatar{
+    background:linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+.user-color-2 .msg-author{
+    color:#a78bfa;
+}
+
+.user-color-2 .msg-bubble{
+    border-color:rgba(124,58,237,.42);
+    background:linear-gradient(135deg, rgba(76,29,149,.28), rgba(15,23,42,.92));
+}
+
+.user-color-3 .message-avatar{
+    background:linear-gradient(135deg, #0d9488, #06b6d4);
+}
+
+.user-color-3 .msg-author{
+    color:#2dd4bf;
+}
+
+.user-color-3 .msg-bubble{
+    border-color:rgba(45,212,191,.4);
+    background:linear-gradient(135deg, rgba(13,148,136,.24), rgba(15,23,42,.92));
+}
+
+.user-color-4 .message-avatar{
+    background:linear-gradient(135deg, #1d4ed8, #4338ca);
+}
+
+.user-color-4 .msg-author{
+    color:#60a5fa;
+}
+
+.user-color-4 .msg-bubble{
+    border-color:rgba(96,165,250,.4);
+    background:linear-gradient(135deg, rgba(30,64,175,.25), rgba(15,23,42,.92));
+}
+
+.message-bot .message-avatar{
+    background:linear-gradient(135deg, #334155, #0f3b57);
+    color:#67e8f9;
+}
+
+.message-bot .msg-bubble{
+    border-color:rgba(34,211,238,.38);
+}
+
+.message-ia .message-avatar{
+    background:linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+.message-ia .msg-bubble{
+    border-color:rgba(167,139,250,.46);
+    background:linear-gradient(135deg, rgba(79,70,229,.28), rgba(15,23,42,.92));
+}
+
+.message-telegram .message-avatar{
+    background:linear-gradient(135deg, #0891b2, #22d3ee);
+}
+
+.message-telegram .msg-bubble{
+    border-color:rgba(45,212,191,.42);
+}
+
+.message.msg-sent .message-avatar{
+    background:linear-gradient(135deg, #2563eb, #06b6d4);
+}
+
+.message.msg-sent .msg-author{
+    color:#cbd5e1;
+}
+
+.message.msg-sent .msg-bubble{
+    border-color:rgba(34,211,238,.44);
+    background:linear-gradient(135deg, rgba(37,99,235,.95), rgba(6,182,212,.9));
+}
+
+.msg-system{
+    display:flex;
+    justify-content:center;
+    text-align:center;
+    max-width:100%;
+}
+
+.msg-system span{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    max-width:min(90%, 720px);
+    padding:8px 14px;
+    border:1px solid rgba(148,163,184,.16);
+    border-radius:999px;
+    background:rgba(15,23,42,.74);
+    color:#cbd5e1;
+}
+
+.msg-system svg{
+    width:16px;
+    height:16px;
+    stroke:#67e8f9;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    fill:none;
+    flex-shrink:0;
+}
+
+@media(max-width:768px){
+    .chat-messages .message,
+    .message.msg-sent{
+        max-width:80%;
+        grid-template-columns:34px minmax(0, 1fr);
+        column-gap:9px;
+    }
+
+    .message.msg-sent{
+        grid-template-columns:minmax(0, 1fr) 32px;
+    }
+
+    .message-avatar{
+        width:34px;
+        height:34px;
+        font-size:14px;
+    }
+
+    .msg-sent .message-avatar{
+        width:32px;
+        height:32px;
+    }
+
+    .msg-bubble{
+        padding:11px 13px;
+    }
+}
+
 </style>
 
 </head>
@@ -5913,6 +6198,17 @@ function agregarSistema(texto){
         escaparHTML(texto) +
         "</span>";
 
+    div.innerHTML =
+        '<span>' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+                '<circle cx="12" cy="12" r="9"></circle>' +
+                '<line x1="12" y1="11" x2="12" y2="16"></line>' +
+                '<line x1="12" y1="8" x2="12.01" y2="8"></line>' +
+            '</svg>' +
+            'Sistema: ' +
+            escaparHTML(texto) +
+        '</span>';
+
     chat.appendChild(div);
 
     chat.scrollTop =
@@ -5938,7 +6234,7 @@ function formatearTextoMensaje(texto){
     let seguro =
         escaparHTML(texto);
 
-    return seguro.replace(
+    seguro = seguro.replace(
         /(https?:\/\/[^\s<]+|\/static\/docs\/[^\s<]+)/g,
         function(url){
 
@@ -5947,6 +6243,99 @@ function formatearTextoMensaje(texto){
             '</a>';
         }
     );
+
+    return seguro.replace(
+        /(\/(?:ayuda|ubicacion|teambook|reglas|cronograma|algoritmos|contacto|info|inscripcion|requisitos))/gi,
+        '<span class="cmd-chip">$1</span>'
+    );
+}
+
+function colorUsuario(usuario){
+
+    let hash = 0;
+
+    for(let i = 0; i < usuario.length; i++){
+        hash =
+            usuario.charCodeAt(i) +
+            ((hash << 5) - hash);
+    }
+
+    return "user-color-" + ((Math.abs(hash) % 4) + 1);
+}
+
+function inicialUsuario(usuario){
+
+    let limpio =
+        (usuario || "?").trim();
+
+    return escaparHTML(
+        limpio.charAt(0).toUpperCase() || "?"
+    );
+}
+
+function tipoMensaje(usuario, telegram){
+
+    let normalizado =
+        (usuario || "").trim().toLowerCase();
+
+    if(telegram || normalizado == "telegram"){
+        return "telegram";
+    }
+
+    if(normalizado == "bytebot ia" || normalizado == "ia"){
+        return "ia";
+    }
+
+    if(normalizado == "bytebot"){
+        return "bot";
+    }
+
+    return "usuario";
+}
+
+function iconoAvatarMensaje(tipo, usuario){
+
+    if(tipo == "bot"){
+        return '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+            '<rect x="6" y="8" width="12" height="10" rx="3"></rect>' +
+            '<path d="M12 8V4"></path>' +
+            '<circle cx="9.5" cy="13" r="1"></circle>' +
+            '<circle cx="14.5" cy="13" r="1"></circle>' +
+        '</svg>';
+    }
+
+    if(tipo == "ia"){
+        return '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+            '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"></path>' +
+            '<path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"></path>' +
+        '</svg>';
+    }
+
+    if(tipo == "telegram"){
+        return '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+            '<path d="M22 2 11 13"></path>' +
+            '<path d="M22 2 15 22l-4-9-9-4 20-7z"></path>' +
+        '</svg>';
+    }
+
+    return inicialUsuario(usuario);
+}
+
+function badgeMensaje(tipo){
+
+    if(tipo == "bot"){
+        return '<span class="message-badge">BOT</span>';
+    }
+
+    if(tipo == "ia"){
+        return '<span class="message-badge">IA</span>';
+    }
+
+    if(tipo == "telegram"){
+        return '<span class="message-badge">TG</span>';
+    }
+
+    return "";
 }
 
 // =========================================
@@ -5985,6 +6374,30 @@ function agregarMensaje(
             }
         );
 
+    let tipo =
+        tipoMensaje(usuario, telegram);
+
+    let propio =
+        usuario == nombre && tipo == "usuario";
+
+    let usuarioSeguro =
+        escaparHTML(usuario);
+
+    let color =
+        tipo == "usuario"
+        ? colorUsuario(usuario)
+        : "";
+
+    let clases =
+        [
+            color,
+            "message-" + tipo
+        ].filter(Boolean);
+
+    clases.forEach(function(clase){
+        div.classList.add(clase);
+    });
+
     if(usuario == nombre){
 
         div.classList.add(
@@ -5998,36 +6411,38 @@ function agregarMensaje(
         );
     }
 
-    let tagTelegram = "";
-
-    if(telegram){
-
-        tagTelegram =
-            '<span class="tag-bot">' +
-            'Telegram' +
-            '</span>';
-
-    }
+    let badge =
+        badgeMensaje(tipo);
 
     div.innerHTML =
 
-        '<div class="msg-meta">' +
-
-            usuario +
-
-            tagTelegram +
-
+        '<div class="message-avatar">' +
+            iconoAvatarMensaje(tipo, usuario) +
         '</div>' +
 
-        '<div class="msg-bubble">' +
+        '<div class="message-content">' +
 
-            '<p>' +
-                formatearTextoMensaje(texto) +
-            '</p>' +
+            '<div class="msg-meta">' +
 
-            '<span class="msg-time">' +
-                hora +
-            '</span>' +
+                '<span class="msg-author">' +
+                    usuarioSeguro +
+                '</span>' +
+
+                badge +
+
+                '<span class="msg-time">' +
+                    hora +
+                '</span>' +
+
+            '</div>' +
+
+            '<div class="msg-bubble">' +
+
+                '<p>' +
+                    formatearTextoMensaje(texto) +
+                '</p>' +
+
+            '</div>' +
 
         '</div>';
 
