@@ -2412,7 +2412,7 @@ body{
         top:0;
         bottom:0;
         left:0;
-        z-index:30;
+        z-index:90;
         width:min(84vw, 320px);
         height:100dvh;
         height:var(--app-height, 100dvh);
@@ -2435,7 +2435,7 @@ body{
         display:none;
         position:fixed;
         inset:0;
-        z-index:20;
+        z-index:80;
         background:rgba(2,6,23,.55);
     }
 
@@ -2444,11 +2444,7 @@ body{
     }
 
     .sidebar-close{
-        display:block;
-        position:absolute;
-        top:12px;
-        right:12px;
-        font-size:24px;
+        display:none;
     }
 
     .brand{
@@ -2593,7 +2589,7 @@ body{
         max-width:calc(100vw - 24px);
         padding:9px 10px;
         box-sizing:border-box;
-        z-index:85;
+        z-index:70;
     }
 
     .header-dropdown{
@@ -2603,7 +2599,7 @@ body{
         width:auto;
         max-width:calc(100vw - 24px);
         box-sizing:border-box;
-        z-index:85;
+        z-index:70;
     }
 
     .chat-messages{
@@ -2665,8 +2661,9 @@ body{
         <button
             type="button"
             class="menu-toggle"
-            onclick="abrirMenuMovil()"
+            onclick="toggleMenuMovil()"
             aria-label="Abrir menu"
+            aria-expanded="false"
         >
             ☰
         </button>
@@ -3117,7 +3114,23 @@ ubicarAccionesHeader();
 // MENU MOVIL
 // =========================================
 
+function actualizarEstadoMenuMovil(abierto){
+
+    let boton =
+        document.querySelector(".menu-toggle");
+
+    if(boton){
+        boton.setAttribute(
+            "aria-expanded",
+            abierto ? "true" : "false"
+        );
+    }
+}
+
 function abrirMenuMovil(){
+
+    cerrarDropdownsHeader();
+    cerrarBusquedaHeader();
 
     document
         .querySelector(".sidebar")
@@ -3126,6 +3139,8 @@ function abrirMenuMovil(){
     document
         .querySelector(".sidebar-backdrop")
         .classList.add("open");
+
+    actualizarEstadoMenuMovil(true);
 }
 
 function cerrarMenuMovil(){
@@ -3137,6 +3152,23 @@ function cerrarMenuMovil(){
     document
         .querySelector(".sidebar-backdrop")
         .classList.remove("open");
+
+    actualizarEstadoMenuMovil(false);
+}
+
+function toggleMenuMovil(){
+
+    let sidebar =
+        document.querySelector(".sidebar");
+
+    if(sidebar.classList.contains("open")){
+
+        cerrarMenuMovil();
+
+    }else{
+
+        abrirMenuMovil();
+    }
 }
 
 function enviarComandoRapido(comando){
