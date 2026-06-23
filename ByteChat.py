@@ -2113,32 +2113,43 @@ body{
     position:relative;
     display:flex;
     align-items:center;
-    gap:8px;
+    gap:18px;
     flex-shrink:0;
     z-index:50;
 }
 
 .header-icon-btn{
     position:relative;
-    width:38px;
-    height:38px;
-    border:1px solid var(--border);
-    border-radius:11px;
-    background:#1e293b;
-    color:#e5e7eb;
+    width:26px;
+    height:26px;
+    border:none;
+    border-radius:8px;
+    background:transparent;
+    color:#9fb0c8;
     cursor:pointer;
-    font-size:18px;
+    font-size:23px;
     display:flex;
     align-items:center;
     justify-content:center;
-    transition:.2s;
+    padding:0;
+    transition:color .18s ease, transform .18s ease;
+}
+
+.header-icon-btn svg{
+    width:23px;
+    height:23px;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    fill:none;
 }
 
 .header-icon-btn:hover,
 .header-icon-btn.active{
-    border-color:var(--secondary);
-    color:white;
-    background:#0f3b57;
+    color:#67e8f9;
+    background:transparent;
+    transform:translateY(-1px);
 }
 
 .notification-badge{
@@ -2146,15 +2157,16 @@ body{
     position:absolute;
     top:-5px;
     right:-5px;
-    min-width:17px;
-    height:17px;
+    min-width:16px;
+    height:16px;
     padding:0 4px;
     border-radius:999px;
-    background:#ef4444;
+    background:var(--secondary);
     color:white;
     font-size:10px;
-    line-height:17px;
+    line-height:16px;
     font-weight:800;
+    box-shadow:0 0 0 2px #0f172a;
 }
 
 .notification-badge.show{
@@ -2181,13 +2193,16 @@ body{
     position:absolute;
     top:46px;
     right:0;
-    width:min(300px, 82vw);
-    padding:12px;
+    width:min(560px, calc(100vw - 24px));
+    padding:22px;
     border:1px solid var(--border);
-    border-radius:12px;
-    background:#111827;
-    box-shadow:0 18px 45px rgba(0,0,0,.35);
+    border-radius:22px;
+    background:
+        radial-gradient(circle at top left, rgba(34,211,238,.12), transparent 34%),
+        linear-gradient(180deg, rgba(15,23,42,.98), rgba(8,15,30,.98));
+    box-shadow:0 22px 60px rgba(0,0,0,.42);
     z-index:90;
+    backdrop-filter:blur(16px);
 }
 
 .header-dropdown.show{
@@ -2216,20 +2231,216 @@ body{
     margin:0;
 }
 
+.menu-links{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
 .header-menu-item{
     border:none;
     width:100%;
-    padding:9px 10px;
-    border-radius:9px;
-    background:#1e293b;
+    padding:12px 14px;
+    border-radius:14px;
+    background:transparent;
     color:#e5e7eb;
     text-align:left;
     cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    font-size:15px;
+    transition:background .18s ease, color .18s ease;
 }
 
 .header-menu-item:hover{
-    background:#0f3b57;
+    background:rgba(30,41,59,.82);
     color:white;
+}
+
+.header-menu-item.active{
+    background:rgba(30,41,59,.82);
+    color:white;
+}
+
+.header-menu-item.active .menu-chevron{
+    color:#67e8f9;
+}
+
+.menu-item-icon{
+    width:28px;
+    height:28px;
+    color:var(--secondary);
+    flex-shrink:0;
+}
+
+.menu-item-icon-purple{
+    color:#8b5cf6;
+}
+
+.menu-item-icon svg,
+.menu-card-icon svg,
+.menu-admin-icon svg,
+.menu-chevron svg,
+.menu-admin-link svg{
+    width:100%;
+    height:100%;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    fill:none;
+}
+
+.menu-chevron{
+    width:18px;
+    height:18px;
+    color:#94a3b8;
+    margin-left:auto;
+    flex-shrink:0;
+}
+
+.menu-admin{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin:18px 0;
+    padding:18px 0;
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+}
+
+.menu-admin-icon{
+    width:30px;
+    height:30px;
+    color:#22d3ee;
+    flex-shrink:0;
+}
+
+.menu-admin-title{
+    color:#f8fafc;
+    font-size:15px;
+    font-weight:700;
+    flex:1;
+}
+
+.menu-admin-link{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:11px 14px;
+    border-radius:12px;
+    background:linear-gradient(135deg, var(--primary), var(--secondary));
+    color:white;
+    text-decoration:none;
+    font-weight:800;
+    white-space:nowrap;
+    box-shadow:0 12px 28px rgba(6,182,212,.24);
+}
+
+.menu-admin-link svg{
+    width:18px;
+    height:18px;
+}
+
+.menu-info{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.menu-info-card{
+    display:grid;
+    grid-template-columns:64px 1fr;
+    gap:18px;
+    padding:20px;
+    border:1px solid rgba(148,163,184,.2);
+    border-radius:18px;
+    background:rgba(15,23,42,.62);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.menu-card-icon{
+    width:54px;
+    height:54px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#60a5fa;
+    background:rgba(30,41,59,.9);
+}
+
+.menu-info-title{
+    display:flex;
+    align-items:center;
+    color:white;
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:.2px;
+    margin-bottom:10px;
+}
+
+.menu-info-name{
+    display:block;
+    color:#38bdf8;
+    font-size:20px;
+    font-weight:800;
+    margin-bottom:10px;
+}
+
+.menu-info p{
+    margin:0 0 10px;
+    color:#cbd5e1;
+    font-size:14px;
+    line-height:1.55;
+}
+
+.menu-info-text{
+    min-width:0;
+}
+
+.menu-info-meta{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid var(--border);
+    color:#cbd5e1;
+    font-size:14px;
+}
+
+.menu-info-meta strong{
+    color:#38bdf8;
+    font-weight:800;
+}
+
+.menu-card-icon-purple{
+    color:#a78bfa;
+}
+
+.menu-card-icon-cyan{
+    color:#22d3ee;
+}
+
+@media(max-width:768px){
+    .header-dropdown{
+        max-height:calc(100dvh - 84px);
+        overflow-y:auto;
+    }
+
+    .menu-info-card{
+        grid-template-columns:1fr;
+        padding:16px;
+    }
+
+    .menu-admin{
+        align-items:flex-start;
+        flex-wrap:wrap;
+    }
+
+    .menu-admin-link{
+        width:100%;
+        justify-content:center;
+    }
 }
 
 .message.search-hidden,
@@ -2771,16 +2982,16 @@ body{
         max-width:none;
         margin-left:auto;
         justify-content:flex-end;
-        gap:6px;
+        gap:14px;
         flex-wrap:nowrap;
         box-sizing:border-box;
     }
 
     .header-icon-btn{
-        width:34px;
-        height:34px;
-        font-size:15px;
-        border-radius:10px;
+        width:24px;
+        height:24px;
+        font-size:22px;
+        border-radius:8px;
     }
 
     .header-search{
@@ -3120,7 +3331,10 @@ body{
                     aria-label="Buscar mensajes"
                     onclick="toggleBusquedaHeader()"
                 >
-                    &#128269;
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+                    </svg>
                 </button>
 
                 <button
@@ -3130,7 +3344,10 @@ body{
                     aria-label="Abrir notificaciones"
                     onclick="toggleDropdownHeader('notificacionesPanel')"
                 >
-                    &#128276;
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                        <path d="M10 21h4"></path>
+                    </svg>
                     <span
                         class="notification-badge"
                         id="notificacionesBadge"
@@ -3144,7 +3361,11 @@ body{
                     aria-label="Abrir menu de informacion"
                     onclick="toggleDropdownHeader('menuHeaderPanel')"
                 >
-                    &#8942;
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="5" r="1.5"></circle>
+                        <circle cx="12" cy="12" r="1.5"></circle>
+                        <circle cx="12" cy="19" r="1.5"></circle>
+                    </svg>
                 </button>
 
                 <div
@@ -3161,30 +3382,94 @@ body{
                     class="header-dropdown"
                     id="menuHeaderPanel"
                 >
-                    <button
-                        type="button"
-                        class="header-menu-item"
-                        onclick="mostrarInfoHeader('acerca')"
-                    >
-                        Acerca de ByteChat
-                    </button>
-                    <button
-                        type="button"
-                        class="header-menu-item"
-                        onclick="mostrarInfoHeader('desarrollado')"
-                    >
-                        Desarrollado por
-                    </button>
-                    <button
-                        type="button"
-                        class="header-menu-item"
-                        onclick="mostrarInfoHeader('ayuda')"
-                    >
-                        Ayuda
-                    </button>
-                    <p id="menuHeaderInfo">
-                        ByteChat Arena - Plataforma de comunicacion para eventos de programacion competitiva.
-                    </p>
+                    <div class="menu-links">
+                        <button
+                            type="button"
+                            class="header-menu-item"
+                            data-menu-section="acerca"
+                            onclick="mostrarInfoHeader('acerca')"
+                        >
+                            <span class="menu-item-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                    <line x1="12" y1="10" x2="12" y2="16"></line>
+                                    <line x1="12" y1="7" x2="12.01" y2="7"></line>
+                                </svg>
+                            </span>
+                            <span>Acerca de ByteChat</span>
+                            <span class="menu-chevron">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            class="header-menu-item"
+                            data-menu-section="desarrollado"
+                            onclick="mostrarInfoHeader('desarrollado')"
+                        >
+                            <span class="menu-item-icon menu-item-icon-purple">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <polyline points="16 18 22 12 16 6"></polyline>
+                                    <polyline points="8 6 2 12 8 18"></polyline>
+                                </svg>
+                            </span>
+                            <span>Desarrollado por</span>
+                            <span class="menu-chevron">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            class="header-menu-item"
+                            data-menu-section="ayuda"
+                            onclick="mostrarInfoHeader('ayuda')"
+                        >
+                            <span class="menu-item-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                    <path d="M9.5 9a2.8 2.8 0 0 1 5.2 1.4c0 2-2.7 2.1-2.7 4"></path>
+                                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                                </svg>
+                            </span>
+                            <span>Ayuda</span>
+                            <span class="menu-chevron">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="menu-admin">
+                        <span class="menu-admin-icon">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <rect x="9" y="11" width="6" height="5" rx="1"></rect>
+                                <path d="M10 11V9a2 2 0 0 1 4 0v2"></path>
+                            </svg>
+                        </span>
+                        <span class="menu-admin-title">Ingresar como administrador</span>
+                        <a
+                            class="menu-admin-link"
+                            href="/admin"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Abrir login
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M14 3h7v7"></path>
+                                <path d="M10 14 21 3"></path>
+                                <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path>
+                            </svg>
+                        </a>
+                    </div>
+                    <div
+                        id="menuHeaderInfo"
+                        class="menu-info"
+                    ></div>
                 </div>
 
             </div>
@@ -3259,6 +3544,7 @@ var ticketsUsuario = [];
 var ticketActual = "";
 var notificacionesHeader = [];
 var soporteBloqueado = false;
+var activeMenuSection = null;
 
 // =========================================
 // ALTURA MOVIL SEGURA
@@ -3406,6 +3692,21 @@ function cerrarDropdownsHeader(){
         .querySelectorAll(".header-dropdown")
         .forEach(function(panel){
             panel.classList.remove("show");
+        });
+
+    activeMenuSection = null;
+
+    let info =
+        document.getElementById("menuHeaderInfo");
+
+    if(info){
+        info.innerHTML = "";
+    }
+
+    document
+        .querySelectorAll(".header-menu-item")
+        .forEach(function(boton){
+            boton.classList.remove("active");
         });
 }
 
@@ -3654,20 +3955,140 @@ function mostrarInfoHeader(tipo){
     let info =
         document.getElementById("menuHeaderInfo");
 
+    let acercaCard =
+        '<div class="menu-info-card">' +
+            '<span class="menu-card-icon menu-card-icon-cyan">' +
+                '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+                    '<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>' +
+                    '<line x1="8" y1="10" x2="8.01" y2="10"></line>' +
+                    '<line x1="12" y1="10" x2="12.01" y2="10"></line>' +
+                    '<line x1="16" y1="10" x2="16.01" y2="10"></line>' +
+                '</svg>' +
+            '</span>' +
+            '<div class="menu-info-text">' +
+                '<div class="menu-info-title">Acerca de ByteChat</div>' +
+                '<p><strong>ByteChat Arena</strong> es una plataforma de comunicación en tiempo real diseñada para entornos académicos.</p>' +
+                '<p>Permite la interacción mediante canales, anuncios, soporte privado e integración con asistentes inteligentes para apoyo académico.</p>' +
+                '<p class="menu-info-meta"><strong>Versión:</strong> 2026 &nbsp; • &nbsp; <strong>Universidad:</strong> UDBOL</p>' +
+            '</div>' +
+        '</div>';
+
+    let desarrolladoCard =
+        '<div class="menu-info-card">' +
+            '<span class="menu-card-icon menu-card-icon-purple">' +
+                '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+                    '<path d="M22 10 12 5 2 10l10 5 10-5z"></path>' +
+                    '<path d="M6 12v5c3 2 9 2 12 0v-5"></path>' +
+                    '<path d="M22 10v6"></path>' +
+                '</svg>' +
+            '</span>' +
+            '<div class="menu-info-text">' +
+                '<div class="menu-info-title">Desarrollado por</div>' +
+                '<span class="menu-info-name">Rafael Stoessel</span>' +
+                '<p>Estudiante de Ingeniería de Sistemas.</p>' +
+                '<p>Proyecto académico desarrollado para la asignatura de Programación Avanzada en la Universidad de Aquino Bolivia (UDBOL).</p>' +
+                '<p class="menu-info-meta"><strong>Gestión:</strong> 2026</p>' +
+            '</div>' +
+        '</div>';
+
+    let ayudaCard =
+        '<div class="menu-info-card">' +
+            '<span class="menu-card-icon">' +
+                '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+                    '<circle cx="12" cy="12" r="9"></circle>' +
+                    '<path d="M9.5 9a2.8 2.8 0 0 1 5.2 1.4c0 2-2.7 2.1-2.7 4"></path>' +
+                    '<line x1="12" y1="18" x2="12.01" y2="18"></line>' +
+                '</svg>' +
+            '</span>' +
+            '<div class="menu-info-text">' +
+                '<div class="menu-info-title">Ayuda</div>' +
+                '<p>Usa los canales para conversar, la sala Anuncios para información oficial y Soporte para una conversación privada con el administrador.</p>' +
+                '<p>En la sala IA puedes consultar el TeamBook y recibir apoyo académico sin resolver problemas completos del concurso.</p>' +
+            '</div>' +
+        '</div>';
+
+    document
+        .querySelectorAll(".header-menu-item")
+        .forEach(function(boton){
+            boton.classList.remove("active");
+        });
+
+    if(activeMenuSection == tipo){
+
+        activeMenuSection = null;
+        info.innerHTML = "";
+        return;
+    }
+
+    activeMenuSection = tipo;
+
+    let botonActivo =
+        document.querySelector(
+            '.header-menu-item[data-menu-section="' + tipo + '"]'
+        );
+
+    if(botonActivo){
+        botonActivo.classList.add("active");
+    }
+
     if(tipo == "desarrollado"){
 
-        info.textContent =
-            "Desarrollado por Rafael Stoessel y equipo.";
+        info.innerHTML =
+            desarrolladoCard;
+        return;
 
     }else if(tipo == "ayuda"){
 
-        info.textContent =
-            "Usa los canales, tickets y comandos rapidos desde la barra lateral. En la sala IA puedes consultar el TeamBook.";
+        info.innerHTML =
+            ayudaCard;
+        return;
 
     }else{
 
-        info.textContent =
-            "ByteChat Arena - Plataforma de comunicacion para eventos de programacion competitiva.";
+        info.innerHTML =
+            acercaCard;
+        return;
+    }
+
+    if(tipo == "desarrollado"){
+
+        info.innerHTML =
+            '<div class="menu-info-section">' +
+                '<div class="menu-info-title">' +
+                    '<span class="menu-info-icon">◇</span>' +
+                    'Desarrollado por' +
+                '</div>' +
+                '<strong>Rafael Stoessel</strong>' +
+                '<p>Estudiante de Ingenieria de Sistemas.</p>' +
+                '<p>Proyecto academico desarrollado para la asignatura de Programacion Avanzada en la Universidad de Aquino Bolivia (UDABOL).</p>' +
+                '<p class="menu-info-meta">Gestion: 2026</p>' +
+            '</div>';
+
+    }else if(tipo == "ayuda"){
+
+        info.innerHTML =
+            '<div class="menu-info-section">' +
+                '<div class="menu-info-title">' +
+                    '<span class="menu-info-icon">?</span>' +
+                    'Ayuda' +
+                '</div>' +
+                '<p>Usa los canales, soporte privado y comandos rapidos desde la barra lateral.</p>' +
+                '<p>En la sala IA puedes consultar el TeamBook y recibir apoyo academico.</p>' +
+            '</div>';
+
+    }else{
+
+        info.innerHTML =
+            '<div class="menu-info-section">' +
+                '<div class="menu-info-title">' +
+                    '<span class="menu-info-icon">◌</span>' +
+                    'Acerca de ByteChat' +
+                '</div>' +
+                '<strong>ByteChat Arena</strong>' +
+                '<p>Plataforma de comunicacion en tiempo real desarrollada para la materia de Programacion Avanzada.</p>' +
+                '<p>Permite la interaccion mediante canales, anuncios, soporte privado e integracion con asistentes inteligentes para apoyo academico.</p>' +
+                '<p class="menu-info-meta">Version: 2026<br>Universidad: UDABOL</p>' +
+            '</div>';
     }
 }
 
