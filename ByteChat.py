@@ -344,6 +344,22 @@ def obtenerTicketsUsuario(usuario):
     ]
 
 
+def obtenerTicketAbiertoUsuario(usuario):
+
+    usuario_normalizado = usuario.strip().lower()
+
+    for ticket in tickets.values():
+
+        if (
+            ticket["usuario"].strip().lower() == usuario_normalizado
+            and ticket["estado"] == "abierto"
+        ):
+
+            return ticket
+
+    return None
+
+
 def emitirTicketsUsuario(usuario):
 
     for sid, nombre in usuariosWeb.items():
@@ -2809,11 +2825,28 @@ body{
 
             <div class="section-content">
 
+                <p
+                    id="ticketEstado"
+                    class="user-status"
+                >
+                    Sin ticket abierto.
+                </p>
+
                 <button
                     type="button"
+                    id="btnCrearTicket"
                     onclick="mostrarFormularioTicket()"
                 >
-                    Crear ticket
+                    Crear ticket de soporte
+                </button>
+
+                <button
+                    type="button"
+                    id="btnAbrirTicket"
+                    style="display:none;"
+                    onclick="abrirMiTicketAbierto()"
+                >
+                    Abrir mi ticket
                 </button>
 
                 <div id="ticketForm" style="display:none;">
@@ -2831,8 +2864,7 @@ body{
                     </button>
                 </div>
 
-                <h3>Mis tickets</h3>
-                <div id="misTickets"></div>
+                <div id="misTickets" style="display:none;"></div>
 
                 <div id="ticketDetalle" style="display:none;">
                     <h3 id="ticketTitulo"></h3>
@@ -3612,6 +3644,14 @@ function crearSalaEquipo(){
 
 function mostrarFormularioTicket(){
 
+    let ticketAbierto =
+        obtenerTicketAbierto();
+
+    if(ticketAbierto){
+        abrirTicket(ticketAbierto.id);
+        return;
+    }
+
     let form =
         document.getElementById("ticketForm");
 
@@ -3625,6 +3665,11 @@ function crearTicketSoporte(){
 
     if(nombre == ""){
         alert("Ingrese nombre");
+        return;
+    }
+
+    if(obtenerTicketAbierto()){
+        alert("Ya tienes un ticket abierto.");
         return;
     }
 
@@ -3651,6 +3696,59 @@ function crearTicketSoporte(){
     document.getElementById("ticketForm").style.display = "none";
 }
 
+function obtenerTicketAbierto(){
+
+    return ticketsUsuario.find(function(ticket){
+        return ticket.estado == "abierto";
+    });
+}
+
+function abrirMiTicketAbierto(){
+
+    let ticketAbierto =
+        obtenerTicketAbierto();
+
+    if(ticketAbierto){
+        abrirTicket(ticketAbierto.id);
+    }
+}
+
+function actualizarEstadoTicketSoporte(){
+
+    let ticketAbierto =
+        obtenerTicketAbierto();
+
+    let estado =
+        document.getElementById("ticketEstado");
+
+    let btnCrear =
+        document.getElementById("btnCrearTicket");
+
+    let btnAbrir =
+        document.getElementById("btnAbrirTicket");
+
+    let form =
+        document.getElementById("ticketForm");
+
+    if(ticketAbierto){
+
+        estado.textContent =
+            "Ticket abierto: " + ticketAbierto.id + " (" + ticketAbierto.estado + ")";
+
+        btnCrear.style.display = "none";
+        btnAbrir.style.display = "inline-block";
+        form.style.display = "none";
+
+    }else{
+
+        estado.textContent =
+            "Sin ticket abierto.";
+
+        btnCrear.style.display = "inline-block";
+        btnAbrir.style.display = "none";
+    }
+}
+
 function actualizarMisTickets(tickets){
 
     ticketsUsuario =
@@ -3660,6 +3758,7 @@ function actualizarMisTickets(tickets){
         document.getElementById("misTickets");
 
     lista.innerHTML = "";
+    actualizarEstadoTicketSoporte();
 
     if(ticketsUsuario.length == 0){
         lista.innerHTML = "<p class='user-status'>Sin tickets.</p>";
@@ -3699,6 +3798,22 @@ function mostrarTicket(ticket){
 
     ticketActual =
         ticket.id;
+
+    let indiceTicket =
+        ticketsUsuario.findIndex(function(item){
+            return item.id == ticket.id;
+        });
+
+    if(indiceTicket >= 0){
+
+        ticketsUsuario[indiceTicket] = ticket;
+
+    }else{
+
+        ticketsUsuario.push(ticket);
+    }
+
+    actualizarEstadoTicketSoporte();
 
     document.getElementById("ticketDetalle").style.display =
         "block";
@@ -4441,6 +4556,27 @@ def crearTicket(data):
             to=request.sid
         )
 
+        return
+
+    ticket_abierto = obtenerTicketAbiertoUsuario(
+        usuario
+    )
+
+    if ticket_abierto:
+
+        socket.emit(
+            "ticket_error",
+            "Ya tienes un ticket de soporte abierto.",
+            to=request.sid
+        )
+
+        socket.emit(
+            "ticket_detalle",
+            serializarTicket(ticket_abierto),
+            to=request.sid
+        )
+
+        emitirTicketsUsuario(usuario)
         return
 
     asunto = str(data.get("asunto", "")).strip()
