@@ -2444,7 +2444,22 @@ body{
     }
 
     .sidebar-close{
-        display:none;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        position:absolute;
+        top:12px;
+        right:12px;
+        z-index:95;
+        width:38px;
+        height:38px;
+        border:1px solid var(--border);
+        border-radius:10px;
+        background:#1e293b;
+        color:white;
+        font-size:24px;
+        line-height:1;
+        cursor:pointer;
     }
 
     .brand{
@@ -2683,7 +2698,7 @@ body{
             type="button"
             class="sidebar-close"
             onclick="cerrarMenuMovil()"
-            aria-label="Cerrar menu"
+            aria-label="Cerrar menú"
         >
             ×
         </button>
@@ -3263,51 +3278,158 @@ function filtrarMensajesVisibles(){
 
 function actualizarNotificacionesHeader(){
 
-    let lista =
-        document.getElementById("listaNotificaciones");
+    let listas =
+        document.querySelectorAll("#listaNotificaciones");
 
-    let badge =
-        document.getElementById("notificacionesBadge");
+    let badges =
+        document.querySelectorAll("#notificacionesBadge");
 
-    if(notificacionesHeader.length == 0){
+    let noLeidas =
+        notificacionesHeader.filter(function(notificacion){
+            return !notificacion.leida;
+        });
 
-        lista.innerHTML =
-            "<li>No hay notificaciones nuevas</li>";
+    if(noLeidas.length == 0){
 
-        badge.textContent = "0";
-        badge.classList.remove("show");
+        listas.forEach(function(lista){
+            lista.innerHTML =
+                "<li>No hay notificaciones nuevas.</li>";
+        });
+
+        badges.forEach(function(badge){
+            badge.textContent = "0";
+            badge.classList.remove("show");
+        });
         return;
     }
 
-    lista.innerHTML = "";
+    listas.forEach(function(lista){
 
-    notificacionesHeader
-        .slice(-5)
-        .reverse()
-        .forEach(function(texto){
+        lista.innerHTML = "";
 
-            let item =
-                document.createElement("li");
+        noLeidas
+            .slice(-5)
+            .reverse()
+            .forEach(function(notificacion){
 
-            item.textContent =
-                texto;
+                let item =
+                    document.createElement("button");
 
-            lista.appendChild(item);
-        });
+                item.type = "button";
+                item.className = "header-menu-item";
+                item.textContent =
+                    notificacion.texto;
 
-    badge.textContent =
-        String(notificacionesHeader.length);
+                item.onclick = function(){
+                    abrirNotificacionTicket(
+                        notificacion.id
+                    );
+                };
 
-    badge.classList.add("show");
+                lista.appendChild(item);
+            });
+    });
+
+    badges.forEach(function(badge){
+        badge.textContent =
+            String(noLeidas.length);
+
+        badge.classList.add("show");
+    });
 }
 
-function agregarNotificacionHeader(texto){
+function agregarNotificacionTicket(ticket){
 
-    notificacionesHeader.push(texto);
+    console.log(
+        "notificacion recibida",
+        {
+            ticket_id:ticket.id,
+            cantidad:notificacionesHeader.length
+        }
+    );
+
+    let mensajes =
+        ticket.mensajes || [];
+
+    let ultimo =
+        mensajes.length
+        ? mensajes[mensajes.length - 1]
+        : null;
+
+    let usuarioTicket =
+        (ticket.usuario || "").trim().toLowerCase();
+
+    let usuarioActual =
+        (nombre || "").trim().toLowerCase();
+
+    if(
+        !ultimo ||
+        ultimo.autor != "Admin" ||
+        (
+            usuarioTicket &&
+            usuarioActual &&
+            usuarioTicket != usuarioActual
+        )
+    ){
+        console.log(
+            "notificacion ignorada",
+            {
+                ticket_id:ticket.id
+            }
+        );
+        return;
+    }
+
+    let idNotificacion =
+        ticket.id + "-" + mensajes.length;
+
+    let existe =
+        notificacionesHeader.some(function(notificacion){
+            return notificacion.id == idNotificacion;
+        });
+
+    if(existe){
+        return;
+    }
+
+    notificacionesHeader.push({
+        id:idNotificacion,
+        ticket_id:ticket.id,
+        leida:false,
+        texto:"Respuesta del admin en " + ticket.id + ": " + ultimo.texto
+    });
+
     notificacionesHeader =
         notificacionesHeader.slice(-9);
 
+    console.log(
+        "notificacion registrada",
+        {
+            ticket_id:ticket.id,
+            cantidad:notificacionesHeader.filter(function(notificacion){
+                return !notificacion.leida;
+            }).length
+        }
+    );
+
     actualizarNotificacionesHeader();
+}
+
+function abrirNotificacionTicket(idNotificacion){
+
+    let notificacion =
+        notificacionesHeader.find(function(item){
+            return item.id == idNotificacion;
+        });
+
+    if(!notificacion){
+        return;
+    }
+
+    notificacion.leida = true;
+    actualizarNotificacionesHeader();
+    abrirTicket(notificacion.ticket_id);
+    cerrarDropdownsHeader();
 }
 
 function mostrarInfoHeader(tipo){
@@ -3643,7 +3765,8 @@ function guardarNombre(){
         return;
     }
 
-    nombre = input.value;
+    nombre = input.value.trim();
+    input.value = nombre;
 
     input.disabled = true;
 
@@ -3798,13 +3921,6 @@ socket.on("message", function(msg){
         msg,
         false
     );
-
-    if(salaActual == "anuncios" || msg.indexOf("Admin:") == 0){
-
-        agregarNotificacionHeader(
-            "Anuncio reciente: " + msg
-        );
-    }
 });
 
 // =========================================
@@ -3962,9 +4078,7 @@ socket.on("ticket_actualizado", function(ticket){
         "listar_mis_tickets"
     );
 
-    agregarNotificacionHeader(
-        "Ticket actualizado: " + ticket.id
-    );
+    agregarNotificacionTicket(ticket);
 
     if(ticketActual == ticket.id){
 
