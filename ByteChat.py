@@ -1910,6 +1910,8 @@ body{
     align-items:center;
     justify-content:space-between;
     gap:16px;
+    position:relative;
+    z-index:40;
 }
 
 .chat-header-title{
@@ -1936,6 +1938,7 @@ body{
     align-items:center;
     gap:8px;
     flex-shrink:0;
+    z-index:50;
 }
 
 .header-icon-btn{
@@ -2007,7 +2010,7 @@ body{
     border-radius:12px;
     background:#111827;
     box-shadow:0 18px 45px rgba(0,0,0,.35);
-    z-index:12;
+    z-index:90;
 }
 
 .header-dropdown.show{
@@ -2074,6 +2077,8 @@ body{
     flex-direction:column;
 
     gap:16px;
+    position:relative;
+    z-index:1;
 }
 
 .pinned-message{
@@ -2363,6 +2368,8 @@ body{
         width:100%;
         max-width:100vw;
         box-sizing:border-box;
+        position:relative;
+        z-index:40;
     }
 
     .menu-toggle,
@@ -2586,7 +2593,7 @@ body{
         max-width:calc(100vw - 24px);
         padding:9px 10px;
         box-sizing:border-box;
-        z-index:35;
+        z-index:85;
     }
 
     .header-dropdown{
@@ -2596,7 +2603,7 @@ body{
         width:auto;
         max-width:calc(100vw - 24px);
         box-sizing:border-box;
-        z-index:35;
+        z-index:85;
     }
 
     .chat-messages{
