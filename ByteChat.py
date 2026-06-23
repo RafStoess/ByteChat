@@ -1906,6 +1906,14 @@ body{
     background:rgba(15,23,42,.95);
 
     backdrop-filter:blur(10px);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+}
+
+.chat-header-title{
+    min-width:0;
 }
 
 .chat-header h2{
@@ -1920,6 +1928,133 @@ body{
     color:#94a3b8;
 
     font-size:13px;
+}
+
+.header-actions{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-shrink:0;
+}
+
+.header-icon-btn{
+    position:relative;
+    width:38px;
+    height:38px;
+    border:1px solid var(--border);
+    border-radius:11px;
+    background:#1e293b;
+    color:#e5e7eb;
+    cursor:pointer;
+    font-size:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:.2s;
+}
+
+.header-icon-btn:hover,
+.header-icon-btn.active{
+    border-color:var(--secondary);
+    color:white;
+    background:#0f3b57;
+}
+
+.notification-badge{
+    display:none;
+    position:absolute;
+    top:-5px;
+    right:-5px;
+    min-width:17px;
+    height:17px;
+    padding:0 4px;
+    border-radius:999px;
+    background:#ef4444;
+    color:white;
+    font-size:10px;
+    line-height:17px;
+    font-weight:800;
+}
+
+.notification-badge.show{
+    display:block;
+}
+
+.header-search{
+    display:none;
+    width:190px;
+    border:1px solid var(--border);
+    border-radius:11px;
+    padding:10px 12px;
+    background:#1e293b;
+    color:white;
+    outline:none;
+}
+
+.header-search.show{
+    display:block;
+}
+
+.header-dropdown{
+    display:none;
+    position:absolute;
+    top:46px;
+    right:0;
+    width:min(300px, 82vw);
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#111827;
+    box-shadow:0 18px 45px rgba(0,0,0,.35);
+    z-index:12;
+}
+
+.header-dropdown.show{
+    display:block;
+}
+
+.header-dropdown h3{
+    color:white;
+    font-size:14px;
+    margin-bottom:8px;
+}
+
+.header-dropdown p,
+.header-dropdown li{
+    color:#cbd5e1;
+    font-size:13px;
+    line-height:1.45;
+}
+
+.header-dropdown ul{
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    padding:0;
+    margin:0;
+}
+
+.header-menu-item{
+    border:none;
+    width:100%;
+    padding:9px 10px;
+    border-radius:9px;
+    background:#1e293b;
+    color:#e5e7eb;
+    text-align:left;
+    cursor:pointer;
+}
+
+.header-menu-item:hover{
+    background:#0f3b57;
+    color:white;
+}
+
+.message.search-hidden,
+.msg-system.search-hidden{
+    display:none;
 }
 
 /* =========================================
@@ -2198,16 +2333,21 @@ body{
 
 @media(max-width:768px){
 
+    html,
     body{
         height:100dvh;
         height:var(--app-height, 100dvh);
-        overflow-y:auto;
+        width:100%;
+        max-width:100vw;
+        overflow:hidden;
     }
 
     .chat-container{
         flex-direction:column;
         height:100dvh;
         height:var(--app-height, 100dvh);
+        width:100%;
+        max-width:100vw;
         overflow:hidden;
     }
 
@@ -2220,6 +2360,9 @@ body{
         flex-shrink:0;
         border-bottom:1px solid var(--border);
         background:rgba(15,23,42,.96);
+        width:100%;
+        max-width:100vw;
+        box-sizing:border-box;
     }
 
     .menu-toggle,
@@ -2238,6 +2381,7 @@ body{
         display:flex;
         flex-direction:column;
         min-width:0;
+        flex:1;
     }
 
     .mobile-title strong{
@@ -2265,9 +2409,12 @@ body{
         width:min(84vw, 320px);
         height:100dvh;
         height:var(--app-height, 100dvh);
-        max-height:none;
+        max-height:100dvh;
+        max-height:var(--app-height, 100dvh);
         flex-shrink:0;
-        overflow:hidden;
+        overflow-y:auto;
+        padding-bottom:calc(88px + env(safe-area-inset-bottom));
+        box-sizing:border-box;
         transform:translateX(-100%);
         transition:transform .2s ease;
         box-shadow:18px 0 40px rgba(0,0,0,.35);
@@ -2348,6 +2495,11 @@ body{
         overflow-y:auto;
     }
 
+    .support-panel .section-content{
+        max-height:none;
+        overflow:visible;
+    }
+
     .user-item{
         padding:8px;
         margin-bottom:5px;
@@ -2395,11 +2547,56 @@ body{
         height:auto;
         display:flex;
         flex-direction:column;
+        width:100%;
+        max-width:100vw;
+        overflow:hidden;
     }
 
     .chat-header{
-        padding:12px;
-        flex-shrink:0;
+        display:none;
+    }
+
+    .chat-header-title{
+        display:none;
+    }
+
+    .header-actions{
+        width:auto;
+        max-width:none;
+        margin-left:auto;
+        justify-content:flex-end;
+        gap:6px;
+        flex-wrap:nowrap;
+        box-sizing:border-box;
+    }
+
+    .header-icon-btn{
+        width:34px;
+        height:34px;
+        font-size:15px;
+        border-radius:10px;
+    }
+
+    .header-search{
+        position:fixed;
+        top:62px;
+        left:12px;
+        right:12px;
+        width:auto;
+        max-width:calc(100vw - 24px);
+        padding:9px 10px;
+        box-sizing:border-box;
+        z-index:35;
+    }
+
+    .header-dropdown{
+        position:fixed;
+        top:62px;
+        right:12px;
+        width:auto;
+        max-width:calc(100vw - 24px);
+        box-sizing:border-box;
+        z-index:35;
     }
 
     .chat-messages{
@@ -2419,7 +2616,8 @@ body{
     .chat-footer{
         flex-shrink:0;
         padding:10px 12px;
-        padding-bottom:calc(12px + env(safe-area-inset-bottom));
+        padding-bottom:calc(20px + env(safe-area-inset-bottom));
+        box-sizing:border-box;
     }
 
     .message-form{
@@ -2439,6 +2637,7 @@ body{
 
     .message{
         max-width:90%;
+        overflow-wrap:anywhere;
     }
 
     .brand h1{
@@ -2667,15 +2866,105 @@ body{
 
         <header class="chat-header">
 
-            <h2>ByteChat Arena</h2>
+            <div class="chat-header-title">
 
-            <p>
-                <span id="salaActualTitulo">General</span>
-                &bull;
-                <span id="salaActualSubtitulo">
-                    Programacion Competitiva
-                </span>
-            </p>
+                <h2>ByteChat Arena</h2>
+
+                <p>
+                    <span id="salaActualTitulo">General</span>
+                    &bull;
+                    <span id="salaActualSubtitulo">
+                        Programacion Competitiva
+                    </span>
+                </p>
+
+            </div>
+
+            <div class="header-actions">
+
+                <input
+                    type="search"
+                    id="busquedaMensajes"
+                    class="header-search"
+                    placeholder="Buscar mensajes..."
+                    oninput="filtrarMensajesVisibles()"
+                >
+
+                <button
+                    type="button"
+                    class="header-icon-btn"
+                    id="btnBuscarHeader"
+                    aria-label="Buscar mensajes"
+                    onclick="toggleBusquedaHeader()"
+                >
+                    &#128269;
+                </button>
+
+                <button
+                    type="button"
+                    class="header-icon-btn"
+                    id="btnNotificaciones"
+                    aria-label="Abrir notificaciones"
+                    onclick="toggleDropdownHeader('notificacionesPanel')"
+                >
+                    &#128276;
+                    <span
+                        class="notification-badge"
+                        id="notificacionesBadge"
+                    >0</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="header-icon-btn"
+                    id="btnMenuHeader"
+                    aria-label="Abrir menu de informacion"
+                    onclick="toggleDropdownHeader('menuHeaderPanel')"
+                >
+                    &#8942;
+                </button>
+
+                <div
+                    class="header-dropdown"
+                    id="notificacionesPanel"
+                >
+                    <h3>Notificaciones</h3>
+                    <ul id="listaNotificaciones">
+                        <li>No hay notificaciones nuevas</li>
+                    </ul>
+                </div>
+
+                <div
+                    class="header-dropdown"
+                    id="menuHeaderPanel"
+                >
+                    <button
+                        type="button"
+                        class="header-menu-item"
+                        onclick="mostrarInfoHeader('acerca')"
+                    >
+                        Acerca de ByteChat
+                    </button>
+                    <button
+                        type="button"
+                        class="header-menu-item"
+                        onclick="mostrarInfoHeader('desarrollado')"
+                    >
+                        Desarrollado por
+                    </button>
+                    <button
+                        type="button"
+                        class="header-menu-item"
+                        onclick="mostrarInfoHeader('ayuda')"
+                    >
+                        Ayuda
+                    </button>
+                    <p id="menuHeaderInfo">
+                        ByteChat Arena - Plataforma de comunicacion para eventos de programacion competitiva.
+                    </p>
+                </div>
+
+            </div>
 
         </header>
 
@@ -2745,6 +3034,7 @@ var mensajesFijados = {
 };
 var ticketsUsuario = [];
 var ticketActual = "";
+var notificacionesHeader = [];
 
 // =========================================
 // ALTURA MOVIL SEGURA
@@ -2763,9 +3053,46 @@ function setAppHeight(){
     );
 }
 
+function ubicarAccionesHeader(){
+
+    let acciones =
+        document.querySelector(".header-actions");
+
+    let topbar =
+        document.querySelector(".mobile-topbar");
+
+    let header =
+        document.querySelector(".chat-header");
+
+    let tituloHeader =
+        document.querySelector(".chat-header-title");
+
+    if(!acciones || !topbar || !header){
+        return;
+    }
+
+    if(window.innerWidth <= 768){
+
+        if(acciones.parentElement !== topbar){
+            topbar.appendChild(acciones);
+        }
+
+    }else if(acciones.parentElement !== header){
+
+        header.appendChild(acciones);
+
+        if(tituloHeader){
+            header.insertBefore(acciones, tituloHeader.nextSibling);
+        }
+    }
+}
+
 window.addEventListener(
     "resize",
-    setAppHeight
+    function(){
+        setAppHeight();
+        ubicarAccionesHeader();
+    }
 );
 
 if(window.visualViewport){
@@ -2777,6 +3104,7 @@ if(window.visualViewport){
 }
 
 setAppHeight();
+ubicarAccionesHeader();
 
 // =========================================
 // MENU MOVIL
@@ -2811,6 +3139,158 @@ function enviarComandoRapido(comando){
 
     cerrarMenuMovil();
     enviar();
+}
+
+function cerrarDropdownsHeader(){
+
+    document
+        .querySelectorAll(".header-dropdown")
+        .forEach(function(panel){
+            panel.classList.remove("show");
+        });
+}
+
+function cerrarBusquedaHeader(){
+
+    let input =
+        document.getElementById("busquedaMensajes");
+
+    if(!input){
+        return;
+    }
+
+    input.value = "";
+    input.classList.remove("show");
+    filtrarMensajesVisibles();
+}
+
+function toggleDropdownHeader(id){
+
+    let panel =
+        document.getElementById(id);
+
+    let estabaAbierto =
+        panel.classList.contains("show");
+
+    cerrarDropdownsHeader();
+
+    if(!estabaAbierto){
+        panel.classList.add("show");
+    }
+}
+
+function toggleBusquedaHeader(){
+
+    let input =
+        document.getElementById("busquedaMensajes");
+
+    input.classList.toggle("show");
+
+    if(input.classList.contains("show")){
+
+        input.focus();
+
+    }else{
+
+        input.value = "";
+        filtrarMensajesVisibles();
+    }
+
+    cerrarDropdownsHeader();
+}
+
+function filtrarMensajesVisibles(){
+
+    let input =
+        document.getElementById("busquedaMensajes");
+
+    let termino =
+        input.value.trim().toLowerCase();
+
+    document
+        .querySelectorAll("#chat .message, #chat .msg-system")
+        .forEach(function(item){
+
+            let coincide =
+                !termino ||
+                item.textContent.toLowerCase().includes(termino);
+
+            item.classList.toggle(
+                "search-hidden",
+                !coincide
+            );
+        });
+}
+
+function actualizarNotificacionesHeader(){
+
+    let lista =
+        document.getElementById("listaNotificaciones");
+
+    let badge =
+        document.getElementById("notificacionesBadge");
+
+    if(notificacionesHeader.length == 0){
+
+        lista.innerHTML =
+            "<li>No hay notificaciones nuevas</li>";
+
+        badge.textContent = "0";
+        badge.classList.remove("show");
+        return;
+    }
+
+    lista.innerHTML = "";
+
+    notificacionesHeader
+        .slice(-5)
+        .reverse()
+        .forEach(function(texto){
+
+            let item =
+                document.createElement("li");
+
+            item.textContent =
+                texto;
+
+            lista.appendChild(item);
+        });
+
+    badge.textContent =
+        String(notificacionesHeader.length);
+
+    badge.classList.add("show");
+}
+
+function agregarNotificacionHeader(texto){
+
+    notificacionesHeader.push(texto);
+    notificacionesHeader =
+        notificacionesHeader.slice(-9);
+
+    actualizarNotificacionesHeader();
+}
+
+function mostrarInfoHeader(tipo){
+
+    let info =
+        document.getElementById("menuHeaderInfo");
+
+    if(tipo == "desarrollado"){
+
+        info.textContent =
+            "Desarrollado por Rafael Stoessel y equipo.";
+
+    }else if(tipo == "ayuda"){
+
+        info.textContent =
+            "Usa los canales, tickets y comandos rapidos desde la barra lateral. En la sala IA puedes consultar el TeamBook.";
+
+    }else{
+
+        info.textContent =
+            "ByteChat Arena - Plataforma de comunicacion para eventos de programacion competitiva.";
+    }
 }
 
 function toggleSidebarSection(boton){
@@ -2934,6 +3414,7 @@ function actualizarSalas(salas){
 function cambiarSala(sala){
 
     if(sala == salaActual){
+        cerrarBusquedaHeader();
         cerrarMenuMovil();
         return;
     }
@@ -3278,6 +3759,13 @@ socket.on("message", function(msg){
         msg,
         false
     );
+
+    if(salaActual == "anuncios" || msg.indexOf("Admin:") == 0){
+
+        agregarNotificacionHeader(
+            "Anuncio reciente: " + msg
+        );
+    }
 });
 
 // =========================================
@@ -3309,6 +3797,7 @@ socket.on("salas", function(salas){
 socket.on("sala_actual", function(sala){
 
     salaActual = sala;
+    cerrarBusquedaHeader();
     actualizarSalaActual();
     actualizarSalas(salasDisponibles);
 
@@ -3362,6 +3851,8 @@ socket.on("historial_sala", function(data){
             false
         );
     });
+
+    filtrarMensajesVisibles();
 });
 
 socket.on("chat_reiniciado", function(data){
@@ -3430,6 +3921,10 @@ socket.on("ticket_actualizado", function(ticket){
 
     socket.emit(
         "listar_mis_tickets"
+    );
+
+    agregarNotificacionHeader(
+        "Ticket actualizado: " + ticket.id
     );
 
     if(ticketActual == ticket.id){
@@ -3609,6 +4104,16 @@ document
         if(e.key === "Enter"){
 
             enviar();
+        }
+    }
+);
+
+document.addEventListener(
+    "click",
+    function(event){
+
+        if(!event.target.closest(".header-actions")){
+            cerrarDropdownsHeader();
         }
     }
 );
