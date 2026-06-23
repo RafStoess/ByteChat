@@ -232,6 +232,52 @@ def obtenerHistorialSala(sala):
 
 def emitirEstadoSala(sala, destino):
 
+    if sala == "soporte":
+
+        usuario = usuariosWeb.get(
+            destino,
+            ""
+        )
+
+        mensajes = []
+
+        if usuario:
+
+            ticket = asegurarTicketSoporteUsuario(
+                usuario
+            )
+
+            join_room(
+                f"ticket-{ticket['id']}",
+                sid=destino,
+                namespace="/"
+            )
+
+            mensajes = serializarMensajesSoporte(
+                ticket
+            )
+
+            emitirTicketsUsuario(usuario)
+
+            socket.emit(
+                "soporte_estado",
+                {
+                    "bloqueado": ticket["estado"] == "bloqueado"
+                },
+                to=destino
+            )
+
+        socket.emit(
+            "historial_sala",
+            {
+                "sala": sala,
+                "mensajes": mensajes
+            },
+            to=destino
+        )
+
+        return
+
     socket.emit(
         "mensaje_fijado",
         {
@@ -352,12 +398,60 @@ def obtenerTicketAbiertoUsuario(usuario):
 
         if (
             ticket["usuario"].strip().lower() == usuario_normalizado
-            and ticket["estado"] == "abierto"
+            and ticket["estado"] in ("abierto", "bloqueado")
         ):
 
             return ticket
 
     return None
+
+
+def asegurarTicketSoporteUsuario(usuario):
+
+    ticket_abierto = obtenerTicketAbiertoUsuario(
+        usuario
+    )
+
+    if ticket_abierto:
+
+        return ticket_abierto
+
+    ticket_id = crearTicketId()
+
+    tickets[ticket_id] = {
+        "id": ticket_id,
+        "usuario": usuario,
+        "asunto": "Soporte",
+        "estado": "abierto",
+        "mensajes": []
+    }
+
+    socket.emit(
+        "tickets_admin_actualizados",
+        True,
+        to="admins"
+    )
+
+    return tickets[ticket_id]
+
+
+def serializarMensajesSoporte(ticket):
+
+    mensajes = []
+
+    for mensaje in ticket.get("mensajes", []):
+
+        autor = mensaje.get("autor", "")
+
+        if autor == "Admin":
+
+            autor = "Soporte ByteChat"
+
+        mensajes.append(
+            f"{autor}: {mensaje.get('texto', '')}"
+        )
+
+    return mensajes
 
 
 def emitirTicketsUsuario(usuario):
@@ -399,6 +493,25 @@ def emitirTicketPrivado(ticket_id):
                 data,
                 to=sid
             )
+
+            if salasUsuario.get(sid) == "soporte":
+
+                socket.emit(
+                    "historial_sala",
+                    {
+                        "sala": "soporte",
+                        "mensajes": serializarMensajesSoporte(ticket)
+                    },
+                    to=sid
+                )
+
+                socket.emit(
+                    "soporte_estado",
+                    {
+                        "bloqueado": ticket["estado"] == "bloqueado"
+                    },
+                    to=sid
+                )
 
     socket.emit(
         "tickets_admin_actualizados",
@@ -897,22 +1010,28 @@ def renderAdminDashboard(
 
     for ticket in tickets.values():
 
+        if ticket["estado"] not in ("abierto", "bloqueado"):
+
+            continue
+
         ultimo = html.escape(
             ticket["mensajes"][-1]["texto"]
             if ticket["mensajes"]
             else ""
         )
 
+        cantidad_mensajes = len(
+            ticket["mensajes"]
+        )
+
         tickets_html += f"""
         <div class="ticket-row">
-            <strong>{html.escape(ticket["id"])}</strong>
-            <span>{html.escape(ticket["usuario"])}</span>
-            <span>{html.escape(ticket["asunto"])}</span>
-            <span>{html.escape(ticket["estado"])}</span>
+            <strong>{html.escape(ticket["usuario"])}</strong>
+            <span>{cantidad_mensajes} mensajes</span>
             <small>{ultimo}</small>
             <form method="get" action="/admin/dashboard">
                 <button name="ticket" value="{html.escape(ticket["id"])}" type="submit">
-                    Abrir
+                    Abrir conversacion
                 </button>
             </form>
         </div>
@@ -920,7 +1039,7 @@ def renderAdminDashboard(
 
     if not tickets_html:
 
-        tickets_html = "<p class='current'>No hay tickets de soporte.</p>"
+        tickets_html = "<p class='current'>No hay tickets abiertos de soporte.</p>"
 
     ticket_detalle_html = ""
     ticket_actual = tickets.get(ticket_seleccionado)
@@ -940,23 +1059,35 @@ def renderAdminDashboard(
 
         respuesta_form = ""
 
-        if ticket_actual["estado"] == "abierto":
+        if ticket_actual["estado"] in ("abierto", "bloqueado"):
+
+            accion_bloqueo = (
+                "desbloquear_chat"
+                if ticket_actual["estado"] == "bloqueado"
+                else "bloquear_chat"
+            )
+
+            texto_bloqueo = (
+                "🔓 Desbloquear chat"
+                if ticket_actual["estado"] == "bloqueado"
+                else "🔒 Bloquear chat"
+            )
 
             respuesta_form = f"""
             <form method="post" action="/admin/dashboard">
                 <input type="hidden" name="ticket_id" value="{html.escape(ticket_actual["id"])}">
                 <textarea name="respuesta_admin" placeholder="Responder al ticket..."></textarea>
                 <button name="accion" value="responder_ticket_admin" type="submit">
-                    Responder ticket
+                    Responder
                 </button>
-                <button class="danger" name="accion" value="cerrar_ticket" type="submit">
-                    Cerrar ticket
+                <button class="danger" name="accion" value="{accion_bloqueo}" type="submit">
+                    {texto_bloqueo}
                 </button>
             </form>
             """
         else:
 
-            respuesta_form = "<p class='current'>Este ticket esta cerrado.</p>"
+            respuesta_form = "<p class='current'>Esta conversacion no esta activa.</p>"
 
         ticket_detalle_html = f"""
         <div class="ticket-detail">
@@ -1118,7 +1249,7 @@ button{{
         </form>
     </section>
     <section class="panel">
-        <h2>Tickets de soporte</h2>
+        <h2>Tickets abiertos</h2>
         {tickets_html}
         {ticket_detalle_html}
     </section>
@@ -1322,7 +1453,7 @@ def adminDashboard():
 
             ticket = tickets.get(ticket_id)
 
-            if ticket and respuesta and ticket["estado"] == "abierto":
+            if ticket and respuesta and ticket["estado"] in ("abierto", "bloqueado"):
 
                 ticket["mensajes"].append({
                     "autor": "Admin",
@@ -1337,7 +1468,7 @@ def adminDashboard():
                 mensaje_estado = "Respuesta enviada al ticket."
                 ticket_seleccionado = ticket_id
 
-        elif accion == "cerrar_ticket":
+        elif accion == "bloquear_chat":
 
             ticket_id = request.form.get(
                 "ticket_id",
@@ -1348,11 +1479,11 @@ def adminDashboard():
 
             if ticket:
 
-                ticket["estado"] = "cerrado"
+                ticket["estado"] = "bloqueado"
 
                 ticket["mensajes"].append({
                     "autor": "Sistema",
-                    "texto": "El ticket fue cerrado por el administrador."
+                    "texto": "🔒 Soporte ha bloqueado la conversación.\n\nTu consulta fue atendida.\nSi necesitas ayuda adicional espera a que soporte reabra la conversación."
                 })
 
                 ticket["mensajes"] = ticket["mensajes"][-50:]
@@ -1360,7 +1491,33 @@ def adminDashboard():
                 emitirTicketPrivado(ticket_id)
                 emitirTicketsUsuario(ticket["usuario"])
 
-                mensaje_estado = "Ticket cerrado."
+                mensaje_estado = "Chat de soporte bloqueado."
+                ticket_seleccionado = ticket_id
+
+        elif accion == "desbloquear_chat":
+
+            ticket_id = request.form.get(
+                "ticket_id",
+                ""
+            )
+
+            ticket = tickets.get(ticket_id)
+
+            if ticket:
+
+                ticket["estado"] = "abierto"
+
+                ticket["mensajes"].append({
+                    "autor": "Sistema",
+                    "texto": "🔓 Soporte ha reabierto la conversación."
+                })
+
+                ticket["mensajes"] = ticket["mensajes"][-50:]
+
+                emitirTicketPrivado(ticket_id)
+                emitirTicketsUsuario(ticket["usuario"])
+
+                mensaje_estado = "Chat de soporte desbloqueado."
                 ticket_seleccionado = ticket_id
 
     return renderAdminDashboard(
@@ -1615,6 +1772,10 @@ body{
 
 .support-panel{
     flex-shrink:0;
+}
+
+.sidebar .support-panel{
+    display:none;
 }
 
 .support-panel h3{
@@ -2333,6 +2494,17 @@ body{
     transform:scale(1.05);
 
     box-shadow:0 0 20px rgba(59,130,246,.4);
+}
+
+.message-form input:disabled,
+.btn-send:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+}
+
+.btn-send:disabled:hover{
+    transform:none;
+    box-shadow:none;
 }
 
 /* =========================================
@@ -3086,6 +3258,7 @@ var mensajesFijados = {
 var ticketsUsuario = [];
 var ticketActual = "";
 var notificacionesHeader = [];
+var soporteBloqueado = false;
 
 // =========================================
 // ALTURA MOVIL SEGURA
@@ -3428,7 +3601,7 @@ function agregarNotificacionTicket(ticket){
         id:idNotificacion,
         ticket_id:ticket.id,
         leida:false,
-        texto:"Respuesta del admin en " + ticket.id + ": " + ultimo.texto
+        texto:"Respuesta de soporte: " + ultimo.texto
     });
 
     notificacionesHeader =
@@ -3460,7 +3633,19 @@ function abrirNotificacionTicket(idNotificacion){
 
     notificacion.leida = true;
     actualizarNotificacionesHeader();
-    abrirTicket(notificacion.ticket_id);
+
+    if(salaActual == "soporte"){
+
+        socket.emit(
+            "cambiar_sala",
+            "soporte"
+        );
+
+    }else{
+
+        cambiarSala("soporte");
+    }
+
     cerrarDropdownsHeader();
 }
 
@@ -3542,12 +3727,46 @@ function actualizarSalaActual(){
         etiqueta;
 
     document.getElementById("salaActualSubtitulo").textContent =
-        "Sala " + etiqueta;
+        salaActual == "soporte"
+        ? "Conversacion privada con soporte"
+        : "Sala " + etiqueta;
 
     document.getElementById("salaMovil").textContent =
-        "Sala " + etiqueta;
+        salaActual == "soporte"
+        ? "Soporte privado"
+        : "Sala " + etiqueta;
 
     actualizarMensajeFijado();
+    actualizarBloqueoSoporte();
+}
+
+function actualizarBloqueoSoporte(){
+
+    let input =
+        document.getElementById("mensaje");
+
+    let boton =
+        document.querySelector(".btn-send");
+
+    let bloqueado =
+        salaActual == "soporte" && soporteBloqueado;
+
+    input.disabled =
+        bloqueado;
+
+    boton.disabled =
+        bloqueado;
+
+    if(bloqueado){
+
+        input.placeholder =
+            "Chat bloqueado por soporte";
+
+    }else{
+
+        input.placeholder =
+            "Escribe tu mensaje...";
+    }
 }
 
 function actualizarMensajeFijado(){
@@ -3994,6 +4213,10 @@ function actualizarUsuarios(usuarios){
 
 function enviar(){
 
+    if(salaActual == "soporte" && soporteBloqueado){
+        return;
+    }
+
     let mensajeInput =
         document.getElementById(
             "mensaje"
@@ -4103,9 +4326,13 @@ socket.on("historial_sala", function(data){
     let mensajes =
         data;
 
+    let salaHistorial =
+        "";
+
     if(data && !Array.isArray(data)){
 
         mensajes = data.mensajes || [];
+        salaHistorial = data.sala || "";
     }
 
     if(!Array.isArray(mensajes)){
@@ -4113,6 +4340,16 @@ socket.on("historial_sala", function(data){
     }
 
     document.getElementById("chat").innerHTML = "";
+
+    if(salaHistorial == "soporte" && mensajes.length == 0){
+
+        agregarMensaje(
+            "Soporte ByteChat: Conversacion privada con soporte. Escribe tu mensaje y un administrador respondera.",
+            false
+        );
+
+        return;
+    }
 
     mensajes.forEach(function(msg){
 
@@ -4201,6 +4438,14 @@ socket.on("ticket_actualizado", function(ticket){
             ticket
         );
     }
+});
+
+socket.on("soporte_estado", function(data){
+
+    soporteBloqueado =
+        !!(data && data.bloqueado);
+
+    actualizarBloqueoSoporte();
 });
 
 socket.on("ticket_error", function(mensaje){
@@ -4700,6 +4945,53 @@ def responderTicketUsuario(data):
     emitirTicketsUsuario(usuario)
 
 
+def recibirMensajeSoporte(usuario, texto):
+
+    ticket = asegurarTicketSoporteUsuario(
+        usuario
+    )
+
+    if ticket["estado"] == "bloqueado":
+
+        socket.emit(
+            "soporte_estado",
+            {
+                "bloqueado": True
+            },
+            to=request.sid
+        )
+
+        return
+
+    ticket["mensajes"].append({
+        "autor": usuario,
+        "texto": texto
+    })
+
+    ticket["mensajes"] = ticket["mensajes"][-50:]
+
+    join_room(
+        f"ticket-{ticket['id']}"
+    )
+
+    socket.emit(
+        "historial_sala",
+        {
+            "sala": "soporte",
+            "mensajes": serializarMensajesSoporte(ticket)
+        },
+        to=request.sid
+    )
+
+    socket.emit(
+        "tickets_admin_actualizados",
+        True,
+        to="admins"
+    )
+
+    emitirTicketsUsuario(usuario)
+
+
 # =========================================
 # MENSAJES WEB
 # =========================================
@@ -4736,6 +5028,15 @@ def recibirMensajeSala(data):
             "message",
             "ByteBot: Solo el administrador puede publicar en la sala de anuncios.",
             to=request.sid
+        )
+
+        return
+
+    if sala == "soporte":
+
+        recibirMensajeSoporte(
+            usuario,
+            texto_usuario
         )
 
         return
