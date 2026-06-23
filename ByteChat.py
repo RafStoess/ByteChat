@@ -2644,18 +2644,45 @@ body{
     align-items:center;
     gap:8px;
     padding:11px 14px;
+    border:1px solid rgba(103,232,249,.28);
     border-radius:12px;
     background:linear-gradient(135deg, var(--primary), var(--secondary));
     color:white;
     text-decoration:none;
     font-weight:800;
     white-space:nowrap;
+    cursor:pointer;
     box-shadow:0 12px 28px rgba(6,182,212,.24);
+    transition:
+        transform .28s ease,
+        box-shadow .28s ease,
+        border-color .28s ease,
+        background .28s ease;
+    will-change:transform;
 }
 
 .menu-admin-link svg{
     width:18px;
     height:18px;
+    transition:transform .28s ease;
+}
+
+.menu-admin-link:hover{
+    transform:translateY(-3px);
+    border-color:rgba(125,249,255,.78);
+    background:linear-gradient(135deg, #3b82f6, #22d3ee);
+    box-shadow:
+        0 16px 34px rgba(6,182,212,.34),
+        0 0 22px rgba(34,211,238,.18);
+}
+
+.menu-admin-link:hover svg{
+    transform:translate(2px, -2px);
+}
+
+.menu-admin-link:active{
+    transform:translateY(1px) scale(.98);
+    box-shadow:0 8px 18px rgba(6,182,212,.22);
 }
 
 .menu-info{
